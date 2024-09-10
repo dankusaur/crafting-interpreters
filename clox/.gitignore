@@ -1,0 +1,11 @@
+# Executables
+bin
+*.exe
+
+# Object files
+obj
+*.o
+
+# Auto-generated dependencies
+deps
+*.d
