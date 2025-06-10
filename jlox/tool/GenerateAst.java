@@ -1,11 +1,9 @@
 package jlox.tool;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,9 +30,13 @@ public class GenerateAst {
         PrintWriter writer = new PrintWriter(outputPath, "UTF-8");
         writer.println("package " + PACKAGE + ";");
         writer.println();
-        writer.println("import java.util.List;");
+        writer.println("abstract class " + baseName + " {");
         writer.println();
-        writer.write("abstract class " + baseName + " {");
+        writeIndented(writer, "abstract <R> R accept(Visitor<R> visitor);", 1);
+        writer.println();
+
+        defineVisitor(writer, baseName, types);
+
         for (String type: types) {
             writer.println();
             String typeName = type.split(":")[0].trim();
@@ -43,6 +45,15 @@ public class GenerateAst {
         }
         writer.println("}");
         writer.close();
+    }
+
+    private static void defineVisitor(PrintWriter writer, String baseName, List<String> types) {
+        writeIndented(writer, "interface Visitor<R> {", 1);
+        for (String type: types) {
+            String typeName = type.split(":")[0].trim();
+            writeIndented(writer, "R visit" + typeName + "(" + typeName + " " + baseName.toLowerCase() + ");", 2);
+        }
+        writeIndented(writer, "}", 1);
     }
 
     private static void defineType(PrintWriter writer, String baseName, String typeName, String fields) {
@@ -58,6 +69,11 @@ public class GenerateAst {
         for (String fieldName: fieldNames) {
             writeIndented(writer, "this." + fieldName + " = " + fieldName + ";", 3);
         }
+        writeIndented(writer, "}", 2);
+        writer.println();
+        writeIndented(writer, "@Override", 2);
+        writeIndented(writer, "<R> R accept(Visitor<R> visitor) {", 2);
+        writeIndented(writer, "return visitor.visit" + typeName + "(this);", 3);
         writeIndented(writer, "}", 2);
         writeIndented(writer, "}", 1);
     }

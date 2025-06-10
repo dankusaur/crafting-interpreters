@@ -1,8 +1,16 @@
 package jlox;
 
-import java.util.List;
-
 abstract class Expr {
+
+    abstract <R> R accept(Visitor<R> visitor);
+
+    interface Visitor<R> {
+        R visitBinary(Binary expr);
+        R visitGrouping(Grouping expr);
+        R visitLiteral(Literal expr);
+        R visitUnary(Unary expr);
+    }
+
     static class Binary extends Expr {
         final Expr left;
         final Token operator;
@@ -13,6 +21,11 @@ abstract class Expr {
             this.operator = operator;
             this.right = right;
         }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitBinary(this);
+        }
     }
 
     static class Grouping extends Expr {
@@ -21,6 +34,11 @@ abstract class Expr {
         Grouping(Expr expression) {
             this.expression = expression;
         }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitGrouping(this);
+        }
     }
 
     static class Literal extends Expr {
@@ -28,6 +46,11 @@ abstract class Expr {
 
         Literal(Object value) {
             this.value = value;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitLiteral(this);
         }
     }
 
@@ -38,6 +61,11 @@ abstract class Expr {
         Unary(Token operator, Expr right) {
             this.operator = operator;
             this.right = right;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitUnary(this);
         }
     }
 }
