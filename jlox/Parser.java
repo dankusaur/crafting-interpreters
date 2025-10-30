@@ -82,6 +82,28 @@ class Parser {
             consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
             return new Expr.Grouping(expr);
         }
+
+        if (match(TokenType.EQUAL_EQUAL, TokenType.BANG_EQUAL)) {
+            error(previous(), "Missing left-hand operand for equality.");
+            equality();
+            return null;
+        }
+        if (match(TokenType.LESS, TokenType.LESS_EQUAL, TokenType.GREATER, TokenType.GREATER_EQUAL)) {
+            error(previous(), "Missing left-hand operand for comparison.");
+            comparison();
+            return null;
+        }
+        if (match(TokenType.PLUS)) {
+            error(previous(), "Missing left-hand operand for term.");
+            term();
+            return null;
+        }
+        if (match(TokenType.SLASH, TokenType.STAR)) {
+            error(previous(), "Missing left-hand operand for factor.");
+            factor();
+            return null;
+        }
+
         throw error(peek(), "Expect expression.");
     }
 
