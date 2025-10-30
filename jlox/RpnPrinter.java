@@ -22,6 +22,11 @@ public class RpnPrinter implements Expr.Visitor<String>{
     }
 
     @Override
+    public String visitTernary(Expr.Ternary expr) {
+        return formatRpn("?:", expr.condition, expr.thenBranch, expr.elseBranch);
+    }
+
+    @Override
     public String visitBinary(Binary expr) {
         return formatRpn(expr.operator.lexeme, expr.left, expr.right);
     }

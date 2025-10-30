@@ -24,7 +24,18 @@ class Parser {
     }
 
     private Expr comma() {
-        return parseBinaryLeftAssociative(this::equality, TokenType.COMMA);
+        return parseBinaryLeftAssociative(this::conditional, TokenType.COMMA);
+    }
+
+    private Expr conditional() {
+        Expr expr = equality();
+        if (match(TokenType.QUESTION_MARK)) {
+            final Expr thenBranch = expression();
+            consume(TokenType.COLON, "Expect ':' after then branch of conditional expression.");
+            final Expr elseBranch = conditional();
+            expr = new Expr.Ternary(expr, thenBranch, elseBranch);
+        }
+        return expr;
     }
 
     private Expr equality() {
