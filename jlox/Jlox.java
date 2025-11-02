@@ -12,7 +12,6 @@ class Jlox {
 
     private static final String EXIT = "exit";
     private static boolean hadError = false;
-    
 
     public static void main(final String[] args) throws IOException{
         if (args.length > 1) {
