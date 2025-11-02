@@ -7,8 +7,8 @@ import jlox.Expr.Unary;
 
 public class RpnPrinter implements Expr.Visitor<String>{
 
-    public static void main(String[] args) {
-        Expr expression = new Expr.Binary(
+    public static void main(final String[] args) {
+        final Expr expression = new Expr.Binary(
                 new Expr.Unary(new Token(TokenType.MINUS, "-", null, 1),
                         new Expr.Literal(123)),
                 new Token(TokenType.STAR, "*", null, 1),
@@ -17,27 +17,27 @@ public class RpnPrinter implements Expr.Visitor<String>{
         System.out.println(new RpnPrinter().print(expression));
     }
 
-    String print(Expr expr) {
+    String print(final Expr expr) {
         return expr.accept(this);
     }
 
     @Override
-    public String visitTernary(Expr.Ternary expr) {
+    public String visitTernary(final Expr.Ternary expr) {
         return formatRpn("?:", expr.condition, expr.thenBranch, expr.elseBranch);
     }
 
     @Override
-    public String visitBinary(Binary expr) {
+    public String visitBinary(final Binary expr) {
         return formatRpn(expr.operator.lexeme, expr.left, expr.right);
     }
 
     @Override
-    public String visitGrouping(Grouping expr) {
+    public String visitGrouping(final Grouping expr) {
         return expr.expression.accept(this);
     }
 
     @Override
-    public String visitLiteral(Literal expr) {
+    public String visitLiteral(final Literal expr) {
         if (expr.value == null) {
             return "nil";
         }
@@ -45,8 +45,8 @@ public class RpnPrinter implements Expr.Visitor<String>{
     }
 
     @Override
-    public String visitUnary(Unary expr) {
-        String lexeme;
+    public String visitUnary(final Unary expr) {
+        final String lexeme;
         if (expr.operator.type == TokenType.MINUS) {
             lexeme = "~";
         } else {
@@ -55,9 +55,9 @@ public class RpnPrinter implements Expr.Visitor<String>{
         return formatRpn(lexeme, expr.right);
     }
 
-    private String formatRpn(String lexeme, Expr ...exprs) {
+    private String formatRpn(final String lexeme, final Expr ...exprs) {
         StringBuilder stringBuilder = new StringBuilder();
-        for (Expr expr: exprs) {
+        for (final Expr expr: exprs) {
             stringBuilder.append(expr.accept(this));
             stringBuilder.append(' ');
         }

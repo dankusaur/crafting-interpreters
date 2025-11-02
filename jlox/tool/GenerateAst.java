@@ -11,12 +11,12 @@ public class GenerateAst {
     private static final String PACKAGE = "jlox";
     private static final String BASE_EXPRESSION_CLASS_NAME = "Expr";
 
-    public static void main(String[] args) throws IOException {
+    public static void main(final String[] args) throws IOException {
         if (args.length != 1) {
             System.err.println("Usage: generate_ast <output directory>");
             System.exit(64);
         }
-        String outputDir = args[0];
+        final String outputDir = args[0];
         defineAst(outputDir, BASE_EXPRESSION_CLASS_NAME, Arrays.asList(
                 "Ternary: Expr condition, Expr thenBranch, Expr elseBranch",
                 "Binary     : Expr left, Token operator, Expr right",
@@ -25,10 +25,12 @@ public class GenerateAst {
                 "Unary      : Token operator, Expr right"
         ));
     }
-    private static void defineAst(String outputDir, String baseName, List<String> types) throws FileNotFoundException, UnsupportedEncodingException {
-        String outputPath = outputDir + "/" + baseName + ".java";
 
-        PrintWriter writer = new PrintWriter(outputPath, "UTF-8");
+    private static void defineAst(final String outputDir, final String baseName, final List<String> types)
+            throws FileNotFoundException, UnsupportedEncodingException {
+        final String outputPath = outputDir + "/" + baseName + ".java";
+
+        final PrintWriter writer = new PrintWriter(outputPath, "UTF-8");
         writer.println("package " + PACKAGE + ";");
         writer.println();
         writer.println("abstract class " + baseName + " {");
@@ -38,42 +40,44 @@ public class GenerateAst {
 
         defineVisitor(writer, baseName, types);
 
-        for (String type: types) {
+        for (final String type: types) {
             writer.println();
-            String typeName = type.split(":")[0].trim();
-            String fields = type.split(":")[1].trim();
+            final String typeName = type.split(":")[0].trim();
+            final String fields = type.split(":")[1].trim();
             defineType(writer, baseName, typeName, fields);
         }
         writer.println("}");
         writer.close();
     }
 
-    private static void defineVisitor(PrintWriter writer, String baseName, List<String> types) {
+    private static void defineVisitor(final PrintWriter writer, final String baseName, final List<String> types) {
         writeIndented(writer, "interface Visitor<R> {", 1);
-        for (String type: types) {
-            String typeName = type.split(":")[0].trim();
+        for (final String type: types) {
+            final String typeName = type.split(":")[0].trim();
             writeIndented(writer, "R visit" + typeName + "(" + typeName + " " + baseName.toLowerCase() + ");", 2);
         }
         writeIndented(writer, "}", 1);
     }
 
-    private static void defineType(PrintWriter writer, String baseName, String typeName, String fields) {
-        List<String> separatedFields = Arrays.stream(fields.split(","))
+    private static void defineType(final PrintWriter writer, final String baseName, final String typeName, final String fields) {
+        final List<String> separatedFields = Arrays.stream(fields.split(","))
             .map(String::trim).toList();
-        List<String> fieldNames = separatedFields.stream().map(field -> field.split(" ")[1]).toList();
+        final List<String> fieldNames = separatedFields.stream().map(field -> field.split(" ")[1]).toList();
         writeIndented(writer, "static class " + typeName + " extends " + baseName + " {", 1);
-        for (String field: separatedFields) {
+        for (final String field: separatedFields) {
             writeIndented(writer, "final " + field + ";", 2);
         }
         writer.println();
-        writeIndented(writer, typeName + "(" + fields + ") {", 2);
+        final String constructorArgs = String.join(", ",
+                separatedFields.stream().map(field -> "final " + field).toList());
+        writeIndented(writer, typeName + "(" + constructorArgs + ") {", 2);
         for (String fieldName: fieldNames) {
             writeIndented(writer, "this." + fieldName + " = " + fieldName + ";", 3);
         }
         writeIndented(writer, "}", 2);
         writer.println();
         writeIndented(writer, "@Override", 2);
-        writeIndented(writer, "<R> R accept(Visitor<R> visitor) {", 2);
+        writeIndented(writer, "<R> R accept(final Visitor<R> visitor) {", 2);
         writeIndented(writer, "return visitor.visit" + typeName + "(this);", 3);
         writeIndented(writer, "}", 2);
         writeIndented(writer, "}", 1);

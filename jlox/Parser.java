@@ -7,7 +7,7 @@ class Parser {
     private final List<Token> tokens;
     private int current = 0;
 
-    Parser(List<Token> tokens) {
+    Parser(final List<Token> tokens) {
         this.tokens = tokens;
     }
 
@@ -57,8 +57,8 @@ class Parser {
 
     private Expr unary() {
         if (match(TokenType.BANG, TokenType.MINUS)) {
-            Token operator = previous();
-            Expr right = unary();
+            final Token operator = previous();
+            final Expr right = unary();
             return new Expr.Unary(operator, right);
         }
         return primary();
@@ -107,7 +107,7 @@ class Parser {
         throw error(peek(), "Expect expression.");
     }
 
-    private Expr parseBinaryLeftAssociative(Supplier<Expr> operandParser, TokenType... operators) {
+    private Expr parseBinaryLeftAssociative(final Supplier<Expr> operandParser, final TokenType... operators) {
         Expr expr = operandParser.get();
         while (match(operators)) {
             final Token operator = previous();
@@ -121,7 +121,7 @@ class Parser {
         if (isAtEnd()) {
             return false;
         }
-        for (TokenType type : types) {
+        for (final TokenType type : types) {
             if (check(type)) {
                 advance();
                 return true;
@@ -130,7 +130,7 @@ class Parser {
         return false;
     }
 
-    private boolean check(TokenType type) {
+    private boolean check(final TokenType type) {
         return peek().type == type;
     }
 
@@ -141,7 +141,7 @@ class Parser {
         return previous();
     }
 
-    private Token consume(TokenType type, String message) {
+    private Token consume(final TokenType type, final String message) {
         if (check(type)) {
             return advance();
         }
@@ -160,7 +160,7 @@ class Parser {
         return tokens.get(current - 1);
     }
 
-    private ParseError error(Token token, String message) {
+    private ParseError error(final Token token, final String message) {
         Jlox.error(token, message);
         return new ParseError();
     }

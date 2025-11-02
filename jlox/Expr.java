@@ -17,14 +17,14 @@ abstract class Expr {
         final Expr thenBranch;
         final Expr elseBranch;
 
-        Ternary(Expr condition, Expr thenBranch, Expr elseBranch) {
+        Ternary(final Expr condition, final Expr thenBranch, final Expr elseBranch) {
             this.condition = condition;
             this.thenBranch = thenBranch;
             this.elseBranch = elseBranch;
         }
 
         @Override
-        <R> R accept(Visitor<R> visitor) {
+        <R> R accept(final Visitor<R> visitor) {
             return visitor.visitTernary(this);
         }
     }
@@ -34,14 +34,14 @@ abstract class Expr {
         final Token operator;
         final Expr right;
 
-        Binary(Expr left, Token operator, Expr right) {
+        Binary(final Expr left, final Token operator, final Expr right) {
             this.left = left;
             this.operator = operator;
             this.right = right;
         }
 
         @Override
-        <R> R accept(Visitor<R> visitor) {
+        <R> R accept(final Visitor<R> visitor) {
             return visitor.visitBinary(this);
         }
     }
@@ -49,12 +49,12 @@ abstract class Expr {
     static class Grouping extends Expr {
         final Expr expression;
 
-        Grouping(Expr expression) {
+        Grouping(final Expr expression) {
             this.expression = expression;
         }
 
         @Override
-        <R> R accept(Visitor<R> visitor) {
+        <R> R accept(final Visitor<R> visitor) {
             return visitor.visitGrouping(this);
         }
     }
@@ -62,12 +62,12 @@ abstract class Expr {
     static class Literal extends Expr {
         final Object value;
 
-        Literal(Object value) {
+        Literal(final Object value) {
             this.value = value;
         }
 
         @Override
-        <R> R accept(Visitor<R> visitor) {
+        <R> R accept(final Visitor<R> visitor) {
             return visitor.visitLiteral(this);
         }
     }
@@ -76,13 +76,13 @@ abstract class Expr {
         final Token operator;
         final Expr right;
 
-        Unary(Token operator, Expr right) {
+        Unary(final Token operator, final Expr right) {
             this.operator = operator;
             this.right = right;
         }
 
         @Override
-        <R> R accept(Visitor<R> visitor) {
+        <R> R accept(final Visitor<R> visitor) {
             return visitor.visitUnary(this);
         }
     }

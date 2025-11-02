@@ -35,7 +35,7 @@ public class Scanner {
         keywords.put("while", WHILE);
     }
 
-    Scanner(String source) {
+    Scanner(final String source) {
         this.source = source;
     }
 
@@ -49,7 +49,7 @@ public class Scanner {
     }
 
     private void scanToken() {
-        char c = advance();
+        final char c = advance();
         switch (c) {
             case '(': addToken(LEFT_PAREN); break;
             case ')': addToken(RIGHT_PAREN); break;
@@ -110,8 +110,8 @@ public class Scanner {
         while (isAlphaNumeric(peek())) {
             advance();
         }
-        String word = source.substring(start, current);
-        TokenType type = keywords.getOrDefault(word, IDENTIFIER);
+        final String word = source.substring(start, current);
+        final TokenType type = keywords.getOrDefault(word, IDENTIFIER);
         addToken(type);
     }
 
@@ -146,7 +146,7 @@ public class Scanner {
         // Consume the closing quote.
         advance();
         // Trim the quotes.
-        String value = source.substring(start + 1, current - 1);
+        final String value = source.substring(start + 1, current - 1);
         addToken(STRING, value);
     }
 
@@ -198,7 +198,7 @@ public class Scanner {
     }
 
     private char advance() {
-        char nextChar = source.charAt(current);
+        final char nextChar = source.charAt(current);
         ++current;
 		return nextChar;
 	}
@@ -208,7 +208,7 @@ public class Scanner {
 	}
 
 	private void addToken(TokenType type, Object literal) {
-		String lexeme = source.substring(start, current);
+		final String lexeme = source.substring(start, current);
         tokens.add(new Token(type, lexeme, literal, line));
 	}
 

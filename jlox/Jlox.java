@@ -14,7 +14,7 @@ class Jlox {
     private static boolean hadError = false;
     
 
-    public static void main(String[] args) throws IOException{
+    public static void main(final String[] args) throws IOException{
         if (args.length > 1) {
             System.out.println("Usage: jlox [script]");
             System.exit(64);
@@ -25,8 +25,8 @@ class Jlox {
         }
     }
 
-    private static void runFile(String path) throws IOException {
-        byte[] bytes = Files.readAllBytes(Paths.get(path));
+    private static void runFile(final String path) throws IOException {
+        final byte[] bytes = Files.readAllBytes(Paths.get(path));
         run(new String(bytes, Charset.defaultCharset()));
         if (hadError) {
             System.exit(65);
@@ -34,11 +34,11 @@ class Jlox {
     }
 
     private static void runPrompt() throws IOException {
-        InputStreamReader input = new InputStreamReader(System.in);
-        BufferedReader reader = new BufferedReader(input);
+        final InputStreamReader input = new InputStreamReader(System.in);
+        final BufferedReader reader = new BufferedReader(input);
         for (;;) {
             System.out.print("> ");
-            String line = reader.readLine();
+            final String line = reader.readLine();
             if (line == null || EXIT.equals(line)) {
                 System.out.println("\nGoodbye.");
                 break;
@@ -49,16 +49,16 @@ class Jlox {
     }
 
     private static void run(String content) {
-        Scanner scanner = new Scanner(content);
-        List<Token> tokens = scanner.scanTokens();
-        Parser parser = new Parser(tokens);
-        Expr expression = parser.parse();
+        final Scanner scanner = new Scanner(content);
+        final List<Token> tokens = scanner.scanTokens();
+        final Parser parser = new Parser(tokens);
+        final Expr expression = parser.parse();
 
         if (hadError) {
             return;
         }
 
-        AstPrinter printer = new AstPrinter();
+        final AstPrinter printer = new AstPrinter();
         System.out.println(printer.print(expression));
     }
 
