@@ -48,6 +48,8 @@ public class Interpreter implements Expr.Visitor<Object> {
                 return isEqual(left, right);
             case BANG_EQUAL:
                 return !isEqual(left, right);
+            default:
+                break;
         }
         // Unreachable?
         return null;
