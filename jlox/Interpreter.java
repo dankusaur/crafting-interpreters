@@ -10,8 +10,11 @@ public class Interpreter implements Expr.Visitor<Object> {
 
     @Override
     public Object visitTernary(final Ternary expr) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitTernary'");
+        Object condition = evaluate(expr.condition);
+        if (isTruthy(condition)) {
+            return evaluate(expr.thenBranch);
+        }
+        return evaluate(expr.elseBranch);
     }
 
     @Override
