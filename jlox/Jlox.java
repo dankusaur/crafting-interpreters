@@ -31,8 +31,9 @@ class Jlox {
         final Optional<String> scriptPath = getScriptPath(args);
         if (scriptPath.isPresent()) {
             runFile(scriptPath.get());
+        } else {
+            runPrompt();
         }
-        runPrompt();
     }
 
     private static Function<Expr, String> getRunner(String[] args) {
