@@ -8,6 +8,16 @@ import jlox.Expr.Unary;
 
 public class Interpreter implements Expr.Visitor<Object> {
 
+    String interpret(Expr expression) {
+        try {
+            Object value = evaluate(expression);
+            return stringify(value);
+        } catch (RuntimeError error) {
+            Jlox.runtimeError(error);
+            return "";
+        }
+    }
+
     @Override
     public Object visitTernary(final Ternary expr) {
         Object condition = evaluate(expr.condition);
@@ -29,20 +39,27 @@ public class Interpreter implements Expr.Visitor<Object> {
                 if (left instanceof String && right instanceof String) {
                     return (String) left + (String) right;
                 }
-                break;
+                throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings.");
             case MINUS:
+                checkNumberOperands(expr.operator, left, right);
                 return (double) left - (double) right;
             case STAR:
+                checkNumberOperands(expr.operator, left, right);
                 return (double) left * (double) right;
             case SLASH:
+                checkNumberOperands(expr.operator, left, right);
                 return (double) left / (double) right;
             case GREATER:
+                checkNumberOperands(expr.operator, left, right);
                 return (double) left > (double) right;
             case GREATER_EQUAL:
+                checkNumberOperands(expr.operator, left, right);
                 return (double) left >= (double) right;
             case LESS:
+                checkNumberOperands(expr.operator, left, right);
                 return (double) left < (double) right;
             case LESS_EQUAL:
+                checkNumberOperands(expr.operator, left, right);
                 return (double) left <= (double) right;
             case EQUAL_EQUAL:
                 return isEqual(left, right);
@@ -70,6 +87,7 @@ public class Interpreter implements Expr.Visitor<Object> {
         final Object value = evaluate(expr.right);
         switch (expr.operator.type) {
             case MINUS:
+                checkNumberOperand(expr.operator, value);
                 return -(double) value;
             case BANG:
                 return !isTruthy(value);
@@ -93,7 +111,7 @@ public class Interpreter implements Expr.Visitor<Object> {
         }
         return false;
     }
-    
+
     private boolean isEqual(Object object1, Object object2) {
         if (object1 == null && object2 == null) {
             return true;
@@ -102,5 +120,33 @@ public class Interpreter implements Expr.Visitor<Object> {
             return false;
         }
         return object1.equals(object2);
+    }
+
+    private void checkNumberOperand(Token operator, Object operand) {
+        if (operand instanceof Double) {
+            return;
+        }
+        throw new RuntimeError(operator, "Operand must be a number.");
+    }
+
+    private void checkNumberOperands(Token operator, Object left, Object right) {
+        if (left instanceof Double && right instanceof Double) {
+            return;
+        }
+        throw new RuntimeError(operator, "Operands must be numbers.");
+    }
+
+    private String stringify(Object value) {
+        if (value == null) {
+            return "nil";
+        }
+        if (value instanceof Double) {
+            String text = value.toString();
+            if (text.endsWith(".0")) {
+                text = text.substring(0, text.length() - 2);
+            }
+            return text;
+        }
+        return value.toString();
     }
 }

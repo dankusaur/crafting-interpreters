@@ -7,21 +7,66 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
+/**
+ * Currently doing 3 jobs of parsing args, determining runners, and error reporting.
+ */
 class Jlox {
 
     private static final String EXIT = "exit";
     private static boolean hadError = false;
+    private static boolean hadRuntimeError = false;
 
-    public static void main(final String[] args) throws IOException{
-        if (args.length > 1) {
-            System.out.println("Usage: jlox [script]");
-            System.exit(64);
-        } else if (args.length == 1) {
-            runFile(args[0]);
-        } else {
-            runPrompt();
+    private static final Interpreter interpreter = new Interpreter();
+
+    private static Function<Expr, String> runner;
+
+    public static void main(final String[] args) throws IOException {
+        if (args.length > 2) {
+            exitWithHelp();
         }
+        runner = getRunner(args);
+        final Optional<String> scriptPath = getScriptPath(args);
+        if (scriptPath.isPresent()) {
+            runFile(scriptPath.get());
+        }
+        runPrompt();
+    }
+
+    private static Function<Expr, String> getRunner(String[] args) {
+        for (final String arg : args) {
+            if (!arg.startsWith("--")) {
+                continue;
+            }
+            final String option = arg.substring(2);
+            switch (option) {
+                case "print":
+                    return (expr) -> new AstPrinter().print(expr);
+                case "run":
+                    return (expr) -> interpreter.interpret(expr);
+                default:
+                    System.out.println("Unknown option provided: " + option);
+                    exitWithHelp();
+            }
+        }
+        return (expr) -> interpreter.interpret(expr);
+    }
+
+    private static Optional<String> getScriptPath(String[] args) {
+        for (final String arg : args) {
+            if (!arg.startsWith("--")) {
+                return Optional.of(arg);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static void exitWithHelp() {
+        System.out
+                .println("Usage: jlox [script] [OPTIONS]\nOptions:\n --run Execute Lox (default)\n --print Print AST");
+        System.exit(64);
     }
 
     private static void runFile(final String path) throws IOException {
@@ -29,6 +74,9 @@ class Jlox {
         run(new String(bytes, Charset.defaultCharset()));
         if (hadError) {
             System.exit(65);
+        }
+        if (hadRuntimeError) {
+            System.exit(70);
         }
     }
 
@@ -57,8 +105,10 @@ class Jlox {
             return;
         }
 
-        final AstPrinter printer = new AstPrinter();
-        System.out.println(printer.print(expression));
+        final String value = runner.apply(expression);
+        if (!value.isEmpty()) {
+            System.out.println(value);
+        }
     }
 
     public static void error(int line, String message) {
@@ -76,5 +126,10 @@ class Jlox {
         } else {
             report(token.line, " at '" + token.lexeme + "'", message);
         }
+    }
+
+    static void runtimeError(RuntimeError error) {
+        System.err.println(error.getMessage() + "\n[line " + error.token.line + "]");
+        hadError = true;
     }
 }
