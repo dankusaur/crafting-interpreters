@@ -87,7 +87,7 @@ class Jlox {
         for (;;) {
             System.out.print("> ");
             final String line = reader.readLine();
-            if (line == null || EXIT.equals(line)) {
+            if (line == null || EXIT.equals(line) || (EXIT + "()").equals(line)) {
                 System.out.println("\nGoodbye.");
                 break;
             }
