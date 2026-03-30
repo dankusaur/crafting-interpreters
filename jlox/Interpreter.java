@@ -8,7 +8,7 @@ import jlox.Expr.Unary;
 
 public class Interpreter implements Expr.Visitor<Object> {
 
-    String interpret(Expr expression) {
+    String interpret(final Expr expression) {
         try {
             Object value = evaluate(expression);
             return stringify(value);
@@ -29,8 +29,8 @@ public class Interpreter implements Expr.Visitor<Object> {
 
     @Override
     public Object visitBinary(final Binary expr) {
-        Object left = evaluate(expr.left);
-        Object right = evaluate(expr.right);
+        final Object left = evaluate(expr.left);
+        final Object right = evaluate(expr.right);
         switch (expr.operator.type) {
             case PLUS:
                 if (left instanceof Double && right instanceof Double) {
@@ -39,7 +39,13 @@ public class Interpreter implements Expr.Visitor<Object> {
                 if (left instanceof String && right instanceof String) {
                     return (String) left + (String) right;
                 }
-                throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings.");
+                if (left instanceof String && right instanceof Double) {
+                    return (String) left + stripDoubleSuffix((double) right);
+                }
+                if (left instanceof Double && right instanceof String) {
+                    return stripDoubleSuffix((double) left) + (String) right;
+                }
+                throw new RuntimeError(expr.operator, "Operands can only consist of numbers or strings.");
             case MINUS:
                 checkNumberOperands(expr.operator, left, right);
                 return (double) left - (double) right;
@@ -48,19 +54,22 @@ public class Interpreter implements Expr.Visitor<Object> {
                 return (double) left * (double) right;
             case SLASH:
                 checkNumberOperands(expr.operator, left, right);
+                if ((double) right == 0) {
+                    throw new RuntimeError(expr.operator, "Division by zero.");
+                }
                 return (double) left / (double) right;
             case GREATER:
-                checkNumberOperands(expr.operator, left, right);
-                return (double) left > (double) right;
+                checkComparableOperands(expr.operator, left, right);
+                return compare(left, right) > 0;
             case GREATER_EQUAL:
-                checkNumberOperands(expr.operator, left, right);
-                return (double) left >= (double) right;
+                checkComparableOperands(expr.operator, left, right);
+                return compare(left, right) >= 0;
             case LESS:
-                checkNumberOperands(expr.operator, left, right);
-                return (double) left < (double) right;
+                checkComparableOperands(expr.operator, left, right);
+                return compare(left, right) < 0;
             case LESS_EQUAL:
-                checkNumberOperands(expr.operator, left, right);
-                return (double) left <= (double) right;
+                checkComparableOperands(expr.operator, left, right);
+                return compare(left, right) <= 0;
             case EQUAL_EQUAL:
                 return isEqual(left, right);
             case BANG_EQUAL:
@@ -101,7 +110,7 @@ public class Interpreter implements Expr.Visitor<Object> {
         return expression.accept(this);
     }
 
-    private boolean isTruthy(Object object) {
+    private boolean isTruthy(final Object object) {
         if (object == null) {
             return false;
         }
@@ -111,7 +120,7 @@ public class Interpreter implements Expr.Visitor<Object> {
         return false;
     }
 
-    private boolean isEqual(Object object1, Object object2) {
+    private boolean isEqual(final Object object1, final Object object2) {
         if (object1 == null && object2 == null) {
             return true;
         }
@@ -121,31 +130,51 @@ public class Interpreter implements Expr.Visitor<Object> {
         return object1.equals(object2);
     }
 
-    private void checkNumberOperand(Token operator, Object operand) {
+    private void checkNumberOperand(final Token operator, final Object operand) {
         if (operand instanceof Double) {
             return;
         }
         throw new RuntimeError(operator, "Operand must be a number.");
     }
 
-    private void checkNumberOperands(Token operator, Object left, Object right) {
+    private void checkNumberOperands(final Token operator, final Object left, final Object right) {
         if (left instanceof Double && right instanceof Double) {
             return;
         }
         throw new RuntimeError(operator, "Operands must be numbers.");
     }
 
-    private String stringify(Object value) {
+    private void checkComparableOperands(final Token operator,
+            final Object left, final Object right) {
+        if (left instanceof Double && right instanceof Double) {
+            return;
+        }
+        if (left instanceof String && right instanceof String) {
+            return;
+        }
+        throw new RuntimeError(operator, "Operands must be of a comparable type: numbers or strings.");
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private int compare(Object left, Object right) {
+        return ((Comparable) left).compareTo(right);
+    }
+
+    private String stringify(final Object value) {
         if (value == null) {
             return "nil";
         }
         if (value instanceof Double) {
-            String text = value.toString();
-            if (text.endsWith(".0")) {
-                text = text.substring(0, text.length() - 2);
-            }
-            return text;
+            return stripDoubleSuffix((double) value);
         }
         return value.toString();
+    }
+
+    private String stripDoubleSuffix(final Double value) {
+        final String text = value.toString();
+        if (text.endsWith(".0")) {
+            return text.substring(0, text.length() - 2);
+        }
+        return text;
     }
 }
