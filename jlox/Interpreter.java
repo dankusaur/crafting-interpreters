@@ -39,11 +39,8 @@ public class Interpreter implements Expr.Visitor<Object> {
                 if (left instanceof String && right instanceof String) {
                     return (String) left + (String) right;
                 }
-                if (left instanceof String && right instanceof Double) {
-                    return (String) left + stripDoubleSuffix((double) right);
-                }
-                if (left instanceof Double && right instanceof String) {
-                    return stripDoubleSuffix((double) left) + (String) right;
+                if (left instanceof String || right instanceof String) {
+                    return stringify(left) + stringify(right);
                 }
                 throw new RuntimeError(expr.operator, "Operands can only consist of numbers or strings.");
             case MINUS:
@@ -165,16 +162,11 @@ public class Interpreter implements Expr.Visitor<Object> {
             return "nil";
         }
         if (value instanceof Double) {
-            return stripDoubleSuffix((double) value);
+            final String text = value.toString();
+            if (text.endsWith(".0")) {
+                return text.substring(0, text.length() - 2);
+            }
         }
         return value.toString();
-    }
-
-    private String stripDoubleSuffix(final Double value) {
-        final String text = value.toString();
-        if (text.endsWith(".0")) {
-            return text.substring(0, text.length() - 2);
-        }
-        return text;
     }
 }
