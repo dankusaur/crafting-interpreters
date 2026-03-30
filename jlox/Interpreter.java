@@ -68,8 +68,7 @@ public class Interpreter implements Expr.Visitor<Object> {
             default:
                 break;
         }
-        // Unreachable?
-        return null;
+        throw new AssertionError("Operand with no handling in runtime.");
     }
 
     @Override
