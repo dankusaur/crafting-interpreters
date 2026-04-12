@@ -1,21 +1,40 @@
 package jlox;
 
+import java.util.List;
+
 import jlox.Expr.Binary;
 import jlox.Expr.Grouping;
 import jlox.Expr.Literal;
 import jlox.Expr.Ternary;
 import jlox.Expr.Unary;
+import jlox.Stmt.Expression;
+import jlox.Stmt.Print;
 
-public class Interpreter implements Expr.Visitor<Object> {
+public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
-    String interpret(final Expr expression) {
+    Void interpret(final List<Stmt> statements) {
         try {
-            Object value = evaluate(expression);
-            return stringify(value);
+            for (final Stmt statement: statements) {
+                execute(statement);
+            }
         } catch (RuntimeError error) {
             Jlox.runtimeError(error);
-            return "";
         }
+        return null;
+    }
+
+
+    @Override
+    public Void visitExpression(final Expression stmt) {
+        evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitPrint(final Print stmt) {
+        final Object value = evaluate(stmt.expression);
+        System.out.println(stringify(value));
+        return null;
     }
 
     @Override
@@ -101,6 +120,10 @@ public class Interpreter implements Expr.Visitor<Object> {
         }
         // Unreachable.
         return null;
+    }
+
+    private void execute(final Stmt statement) {
+        statement.accept(this);
     }
 
     private Object evaluate(final Expr expression) {

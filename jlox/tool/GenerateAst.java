@@ -4,12 +4,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
 public class GenerateAst {
     private static final String PACKAGE = "jlox";
     private static final String BASE_EXPRESSION_CLASS_NAME = "Expr";
+    private static final String BASE_STATEMENT_CLASS_NAME = "Stmt";
 
     public static void main(final String[] args) throws IOException {
         if (args.length != 1) {
@@ -24,13 +26,17 @@ public class GenerateAst {
                 "Literal    : Object value",
                 "Unary      : Token operator, Expr right"
         ));
+        defineAst(outputDir, BASE_STATEMENT_CLASS_NAME, Arrays.asList(
+            "Expression: Expr expression",
+            "Print          : Expr expression"
+        ));
     }
 
     private static void defineAst(final String outputDir, final String baseName, final List<String> types)
             throws FileNotFoundException, UnsupportedEncodingException {
         final String outputPath = outputDir + "/" + baseName + ".java";
 
-        final PrintWriter writer = new PrintWriter(outputPath, "UTF-8");
+        final PrintWriter writer = new PrintWriter(outputPath, StandardCharsets.UTF_8.name());
         writer.println("package " + PACKAGE + ";");
         writer.println();
         writer.println("abstract class " + baseName + " {");

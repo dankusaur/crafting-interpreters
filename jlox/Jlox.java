@@ -21,7 +21,7 @@ class Jlox {
 
     private static final Interpreter interpreter = new Interpreter();
 
-    private static Function<Expr, String> runner;
+    private static Function<List<Stmt>, Void> runner;
 
     public static void main(final String[] args) throws IOException {
         if (args.length > 2) {
@@ -36,7 +36,7 @@ class Jlox {
         }
     }
 
-    private static Function<Expr, String> getRunner(String[] args) {
+    private static Function<List<Stmt>, Void> getRunner(String[] args) {
         for (final String arg : args) {
             if (!arg.startsWith("--")) {
                 continue;
@@ -44,9 +44,9 @@ class Jlox {
             final String option = arg.substring(2);
             switch (option) {
                 case "print":
-                    return (expr) -> new AstPrinter().print(expr);
+                    return (program) -> new AstPrinter().print(program);
                 case "run":
-                    return (expr) -> interpreter.interpret(expr);
+                    return (program) -> interpreter.interpret(program);
                 default:
                     System.out.println("Unknown option provided: " + option);
                     exitWithHelp();
@@ -100,16 +100,13 @@ class Jlox {
         final Scanner scanner = new Scanner(content);
         final List<Token> tokens = scanner.scanTokens();
         final Parser parser = new Parser(tokens);
-        final Expr expression = parser.parse();
+        final List<Stmt> program = parser.parse();
 
         if (hadError) {
             return;
         }
 
-        final String value = runner.apply(expression);
-        if (!value.isEmpty()) {
-            System.out.println(value);
-        }
+        runner.apply(program);
     }
 
     public static void error(int line, String message) {

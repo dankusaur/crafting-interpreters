@@ -1,6 +1,11 @@
 package jlox;
 
-public class AstPrinter implements Expr.Visitor<String> {
+import java.util.List;
+
+import jlox.Stmt.Expression;
+import jlox.Stmt.Print;
+
+public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
     public static void main(final String[] args) {
         final Expr expression = new Expr.Binary(
@@ -9,11 +14,30 @@ public class AstPrinter implements Expr.Visitor<String> {
                 new Token(TokenType.STAR, "*", null, 1),
                 new Expr.Grouping(
                         new Expr.Literal(45.67)));
-        System.out.println(new AstPrinter().print(expression));
+        new AstPrinter().print(List.of(new Stmt.Expression(expression)));
     }
 
-    String print(final Expr expr) {
-        return expr.accept(this);
+    Void print(final List<Stmt> statements) {
+        for (final Stmt statement: statements) {
+            System.out.println(statement.accept(this));
+        }
+        return null;
+    }
+
+    @Override
+    public String visitExpression(Expression stmt) {
+        final StringBuilder repr = new StringBuilder();
+        repr.append("─ ");
+        repr.append(stmt.expression.accept(this));
+        return repr.toString();
+    }
+
+    @Override
+    public String visitPrint(Print stmt) {
+                final StringBuilder repr = new StringBuilder();
+        repr.append("─ print ");
+        repr.append(stmt.expression.accept(this));
+        return repr.toString();
     }
 
     @Override
