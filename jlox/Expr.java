@@ -10,6 +10,7 @@ abstract class Expr {
         R visitGrouping(Grouping expr);
         R visitLiteral(Literal expr);
         R visitUnary(Unary expr);
+        R visitVariable(Variable expr);
     }
 
     static class Ternary extends Expr {
@@ -84,6 +85,19 @@ abstract class Expr {
         @Override
         <R> R accept(final Visitor<R> visitor) {
             return visitor.visitUnary(this);
+        }
+    }
+
+    static class Variable extends Expr {
+        final Token name;
+
+        Variable(final Token name) {
+            this.name = name;
+        }
+
+        @Override
+        <R> R accept(final Visitor<R> visitor) {
+            return visitor.visitVariable(this);
         }
     }
 }

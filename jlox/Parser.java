@@ -1,7 +1,10 @@
 package jlox;
 
+import static jlox.TokenType.EQUAL;
+import static jlox.TokenType.IDENTIFIER;
 import static jlox.TokenType.PRINT;
 import static jlox.TokenType.SEMICOLON;
+import static jlox.TokenType.VAR;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,9 +21,33 @@ class Parser {
     List<Stmt> parse() {
         final List<Stmt> statements = new ArrayList<>();
         while (!isAtEnd()) {
-            statements.add(statement());
+            statements.add(declaration());
         }
         return statements;
+    }
+
+    private Stmt declaration() {
+        try {
+            if (match(VAR)) {
+                return varDeclaration();
+            }
+            return statement();
+        } catch (ParseError error) {
+            synchronize();
+            return null;
+        }
+    }
+
+    private Stmt varDeclaration() {
+        final Token name = consume(IDENTIFIER, "Expect variable name.");
+        
+        Expr initializer = null;
+        if (match(EQUAL)) {
+            initializer = expression();
+        }
+
+        consume(SEMICOLON, "Expect ';' after variable declaration.");
+        return new Stmt.Var(name, initializer);
     }
 
     private Stmt statement() {
@@ -100,6 +127,9 @@ class Parser {
         }
         if (match(TokenType.NUMBER, TokenType.STRING)) {
             return new Expr.Literal(previous().literal);
+        }
+        if (match(TokenType.IDENTIFIER)) {
+            return new Expr.Variable(previous());
         }
         if (match(TokenType.LEFT_PAREN)) {
             Expr expr = expression();
@@ -189,29 +219,28 @@ class Parser {
         return new ParseError();
     }
 
-    // To be used later when we have statements.
-    // private void synchronize() {
-    //     advance();
-    //     while (!isAtEnd()) {
-    //         if (previous().type == TokenType.SEMICOLON) {
-    //             return;
-    //         }
-    //         switch (peek().type) {
-    //             case TokenType.CLASS:
-    //             case TokenType.FUN:
-    //             case TokenType.VAR:
-    //             case TokenType.FOR:
-    //             case TokenType.IF:
-    //             case TokenType.WHILE:
-    //             case TokenType.PRINT:
-    //             case TokenType.RETURN:
-    //                 return;
-    //             default:
-    //                 break;
-    //         }
-    //         advance();
-    //     }
-    // }
+    private void synchronize() {
+        advance();
+        while (!isAtEnd()) {
+            if (previous().type == TokenType.SEMICOLON) {
+                return;
+            }
+            switch (peek().type) {
+                case TokenType.CLASS:
+                case TokenType.FUN:
+                case TokenType.VAR:
+                case TokenType.FOR:
+                case TokenType.IF:
+                case TokenType.WHILE:
+                case TokenType.PRINT:
+                case TokenType.RETURN:
+                    return;
+                default:
+                    break;
+            }
+            advance();
+        }
+    }
 
     private static class ParseError extends RuntimeException {}
 }
