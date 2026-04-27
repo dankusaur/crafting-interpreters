@@ -2,8 +2,10 @@ package jlox;
 
 import java.util.List;
 
+import jlox.Expr.Variable;
 import jlox.Stmt.Expression;
 import jlox.Stmt.Print;
+import jlox.Stmt.Var;
 
 public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
@@ -25,16 +27,18 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     }
 
     @Override
+    public String visitVar(Var stmt) {
+        return "─ var " + stmt.var + "=" + stmt.initializer.accept(this);
+    }
+
+    @Override
     public String visitExpression(Expression stmt) {
-        final StringBuilder repr = new StringBuilder();
-        repr.append("─ ");
-        repr.append(stmt.expression.accept(this));
-        return repr.toString();
+        return "─ "+ stmt.expression.accept(this);
     }
 
     @Override
     public String visitPrint(Print stmt) {
-                final StringBuilder repr = new StringBuilder();
+        final StringBuilder repr = new StringBuilder();
         repr.append("─ print ");
         repr.append(stmt.expression.accept(this));
         return repr.toString();
@@ -56,6 +60,11 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     }
 
     @Override
+    public String visitUnary(final Expr.Unary expr) {
+        return parenthesize(expr.operator.lexeme, expr.right);
+    }
+
+    @Override
     public String visitLiteral(final Expr.Literal expr) {
         if (expr.value == null) {
             return "nil";
@@ -64,8 +73,8 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     }
 
     @Override
-    public String visitUnary(final Expr.Unary expr) {
-        return parenthesize(expr.operator.lexeme, expr.right);
+    public String visitVariable(Variable expr) {
+        return expr.name + "=?";
     }
 
     private String parenthesize(final String lexeme, final Expr... exprs) {

@@ -7,8 +7,10 @@ import jlox.Expr.Grouping;
 import jlox.Expr.Literal;
 import jlox.Expr.Ternary;
 import jlox.Expr.Unary;
+import jlox.Expr.Variable;
 import jlox.Stmt.Expression;
 import jlox.Stmt.Print;
+import jlox.Stmt.Var;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
@@ -191,5 +193,18 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             }
         }
         return value.toString();
+    }
+
+    @Override
+    public Void visitVar(Var stmt) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitVar'");
+    }
+
+
+    @Override
+    public Object visitVariable(Variable expr) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitVariable'");
     }
 }

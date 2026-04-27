@@ -4,6 +4,7 @@ import jlox.Expr.Binary;
 import jlox.Expr.Grouping;
 import jlox.Expr.Literal;
 import jlox.Expr.Unary;
+import jlox.Expr.Variable;
 
 public class RpnPrinter implements Expr.Visitor<String>{
 
@@ -37,14 +38,6 @@ public class RpnPrinter implements Expr.Visitor<String>{
     }
 
     @Override
-    public String visitLiteral(final Literal expr) {
-        if (expr.value == null) {
-            return "nil";
-        }
-        return expr.value.toString();
-    }
-
-    @Override
     public String visitUnary(final Unary expr) {
         final String lexeme;
         if (expr.operator.type == TokenType.MINUS) {
@@ -53,6 +46,20 @@ public class RpnPrinter implements Expr.Visitor<String>{
             lexeme = expr.operator.lexeme;
         }
         return formatRpn(lexeme, expr.right);
+    }
+
+    @Override
+    public String visitVariable(Variable expr) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitVariable'");
+    }
+
+    @Override
+    public String visitLiteral(final Literal expr) {
+        if (expr.value == null) {
+            return "nil";
+        }
+        return expr.value.toString();
     }
 
     private String formatRpn(final String lexeme, final Expr ...exprs) {
