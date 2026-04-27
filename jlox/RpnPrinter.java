@@ -50,8 +50,7 @@ public class RpnPrinter implements Expr.Visitor<String>{
 
     @Override
     public String visitVariable(Variable expr) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitVariable'");
+        return expr.name.lexeme + "ref";
     }
 
     @Override

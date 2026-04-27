@@ -28,7 +28,7 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
     @Override
     public String visitVar(Var stmt) {
-        return "─ var " + stmt.var + "=" + stmt.initializer.accept(this);
+        return "─ var " + stmt.var.lexeme + "=" + stmt.initializer.accept(this);
     }
 
     @Override
@@ -74,7 +74,7 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
     @Override
     public String visitVariable(Variable expr) {
-        return expr.name + "=?";
+        return expr.name.lexeme + "=?";
     }
 
     private String parenthesize(final String lexeme, final Expr... exprs) {
