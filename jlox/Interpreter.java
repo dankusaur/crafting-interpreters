@@ -14,6 +14,8 @@ import jlox.Stmt.Var;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
+    private final Environment environment = new Environment();
+
     Void interpret(final List<Stmt> statements) {
         try {
             for (final Stmt statement: statements) {
@@ -197,14 +199,19 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitVar(Var stmt) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitVar'");
+        Object initialValue = null;
+        if (stmt.initializer != null) {
+            initialValue = evaluate(stmt.initializer);
+        }
+        environment.define(stmt.var.lexeme, initialValue);
+        return null;
+        
     }
 
 
     @Override
     public Object visitVariable(Variable expr) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitVariable'");
+        return environment.get(expr.name);
+
     }
 }
