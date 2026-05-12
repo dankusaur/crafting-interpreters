@@ -2,6 +2,7 @@ package jlox;
 
 import java.util.List;
 
+import jlox.Expr.Assign;
 import jlox.Expr.Variable;
 import jlox.Stmt.Expression;
 import jlox.Stmt.Print;
@@ -87,5 +88,10 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
         stringBuilder.append(')');
 
         return stringBuilder.toString();
+    }
+
+    @Override
+    public String visitAssign(Assign expr) {
+        return parenthesize(expr.name.lexeme, expr.value);
     }
 }

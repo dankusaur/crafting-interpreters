@@ -208,7 +208,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         
     }
 
-
     @Override
     public Object visitVariable(Variable expr) {
         return environment.get(expr.name);

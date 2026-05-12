@@ -20,7 +20,8 @@ public class GenerateAst {
         }
         final String outputDir = args[0];
         defineAst(outputDir, BASE_EXPRESSION_CLASS_NAME, Arrays.asList(
-                "Ternary: Expr condition, Expr thenBranch, Expr elseBranch",
+            "Assign    : Token name, Expr value",
+                "Ternary    : Expr condition, Expr thenBranch, Expr elseBranch",
                 "Binary     : Expr left, Token operator, Expr right",
                 "Grouping   : Expr expression",
                 "Literal    : Object value",

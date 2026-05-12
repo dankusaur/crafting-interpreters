@@ -75,7 +75,21 @@ class Parser {
     }
 
     private Expr comma() {
-        return parseBinaryLeftAssociative(this::conditional, TokenType.COMMA);
+        return parseBinaryLeftAssociative(this::assignment, TokenType.COMMA);
+    }
+
+    private Expr assignment() {
+        Expr expr = conditional();
+        if (match(EQUAL)) {
+            final Token equals = previous();
+            final Expr value = assignment();
+            if (expr instanceof Expr.Variable) {
+                final Token name = ((Expr.Variable)expr).name;
+                return new Expr.Assign(name, value);
+            }
+            error(equals, "Invalid assignment target.");
+        }
+        return expr;
     }
 
     private Expr conditional() {

@@ -1,5 +1,6 @@
 package jlox;
 
+import jlox.Expr.Assign;
 import jlox.Expr.Binary;
 import jlox.Expr.Grouping;
 import jlox.Expr.Literal;
@@ -70,5 +71,10 @@ public class RpnPrinter implements Expr.Visitor<String>{
         stringBuilder.append(lexeme);
 
         return stringBuilder.toString();
+    }
+
+    @Override
+    public String visitAssign(Assign expr) {
+        return formatRpn(expr.name.lexeme, expr.value);
     }
 }

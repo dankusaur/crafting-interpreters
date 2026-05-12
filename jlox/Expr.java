@@ -5,12 +5,28 @@ abstract class Expr {
     abstract <R> R accept(Visitor<R> visitor);
 
     interface Visitor<R> {
+        R visitAssign(Assign expr);
         R visitTernary(Ternary expr);
         R visitBinary(Binary expr);
         R visitGrouping(Grouping expr);
         R visitLiteral(Literal expr);
         R visitUnary(Unary expr);
         R visitVariable(Variable expr);
+    }
+
+    static class Assign extends Expr {
+        final Token name;
+        final Expr value;
+
+        Assign(final Token name, final Expr value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        @Override
+        <R> R accept(final Visitor<R> visitor) {
+            return visitor.visitAssign(this);
+        }
     }
 
     static class Ternary extends Expr {
