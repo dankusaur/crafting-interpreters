@@ -30,8 +30,8 @@ public class GenerateAst {
         ));
         defineAst(outputDir, BASE_STATEMENT_CLASS_NAME, Arrays.asList(
             "Expression: Expr expression",
-            "Print          : Expr expression",
-            "Var            : Token var, Expr initializer"
+            "Print              : Expr expression",
+            "VarStmt            : Token var, Expr initializer"
         ));
     }
 

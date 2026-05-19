@@ -47,7 +47,7 @@ class Parser {
         }
 
         consume(SEMICOLON, "Expect ';' after variable declaration.");
-        return new Stmt.Var(name, initializer);
+        return new Stmt.VarStmt(name, initializer);
     }
 
     private Stmt statement() {

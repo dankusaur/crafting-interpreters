@@ -6,7 +6,7 @@ import jlox.Expr.Assign;
 import jlox.Expr.Variable;
 import jlox.Stmt.Expression;
 import jlox.Stmt.Print;
-import jlox.Stmt.Var;
+import jlox.Stmt.VarStmt;
 
 public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
@@ -28,7 +28,7 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     }
 
     @Override
-    public String visitVar(Var stmt) {
+    public String visitVarStmt(VarStmt stmt) {
         return "─ var " + stmt.var.lexeme + "=" + stmt.initializer.accept(this);
     }
 

@@ -10,7 +10,7 @@ import jlox.Expr.Unary;
 import jlox.Expr.Variable;
 import jlox.Stmt.Expression;
 import jlox.Stmt.Print;
-import jlox.Stmt.Var;
+import jlox.Stmt.VarStmt;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
@@ -198,14 +198,13 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
-    public Void visitVar(Var stmt) {
+    public Void visitVarStmt(VarStmt stmt) {
         Object initialValue = null;
         if (stmt.initializer != null) {
             initialValue = evaluate(stmt.initializer);
         }
         environment.define(stmt.var.lexeme, initialValue);
         return null;
-        
     }
 
     @Override
