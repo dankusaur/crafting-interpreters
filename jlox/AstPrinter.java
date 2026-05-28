@@ -4,6 +4,7 @@ import java.util.List;
 
 import jlox.Expr.Assign;
 import jlox.Expr.Variable;
+import jlox.Stmt.Block;
 import jlox.Stmt.Expression;
 import jlox.Stmt.Print;
 import jlox.Stmt.VarStmt;
@@ -28,21 +29,42 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     }
 
     @Override
-    public String visitVarStmt(VarStmt stmt) {
+    public String visitVarStmt(final VarStmt stmt) {
         return "─ var " + stmt.var.lexeme + "=" + stmt.initializer.accept(this);
     }
 
     @Override
-    public String visitExpression(Expression stmt) {
+    public String visitExpression(final Expression stmt) {
         return "─ "+ stmt.expression.accept(this);
     }
 
     @Override
-    public String visitPrint(Print stmt) {
+    public String visitPrint(final Print stmt) {
         final StringBuilder repr = new StringBuilder();
         repr.append("─ print ");
         repr.append(stmt.expression.accept(this));
         return repr.toString();
+    }
+
+    @Override
+    public String visitVariable(final Variable expr) {
+        return expr.name.lexeme + "=?";
+    }
+
+    @Override
+	public String visitBlock(final Block stmt) {
+	    final StringBuilder repr = new StringBuilder();
+		repr.append("─ {");
+	    for (final Stmt statement: stmt.statements) {
+			repr.append(statement.accept(this));
+		}
+		repr.append("─ }");
+		return repr.toString();
+	}
+
+	@Override
+    public String visitAssign(final Assign expr) {
+        return parenthesize(expr.name.lexeme, expr.value);
     }
 
     @Override
@@ -73,11 +95,6 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
         return expr.value.toString();
     }
 
-    @Override
-    public String visitVariable(Variable expr) {
-        return expr.name.lexeme + "=?";
-    }
-
     private String parenthesize(final String lexeme, final Expr... exprs) {
         final StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append('(').append(lexeme);
@@ -88,10 +105,5 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
         stringBuilder.append(')');
 
         return stringBuilder.toString();
-    }
-
-    @Override
-    public String visitAssign(Assign expr) {
-        return parenthesize(expr.name.lexeme, expr.value);
     }
 }
