@@ -30,18 +30,18 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
     @Override
     public String visitVarStmt(final VarStmt stmt) {
-        return "─ var " + stmt.var.lexeme + "=" + stmt.initializer.accept(this);
+        return "> var " + stmt.var.lexeme + "=" + stmt.initializer.accept(this);
     }
 
     @Override
     public String visitExpression(final Expression stmt) {
-        return "─ "+ stmt.expression.accept(this);
+        return "> "+ stmt.expression.accept(this);
     }
 
     @Override
     public String visitPrint(final Print stmt) {
         final StringBuilder repr = new StringBuilder();
-        repr.append("─ print ");
+        repr.append("> print ");
         repr.append(stmt.expression.accept(this));
         return repr.toString();
     }
@@ -54,11 +54,12 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     @Override
 	public String visitBlock(final Block stmt) {
 	    final StringBuilder repr = new StringBuilder();
-		repr.append("─ {");
+		repr.append("> block start\n");
 	    for (final Stmt statement: stmt.statements) {
 			repr.append(statement.accept(this));
+			repr.append("\n");
 		}
-		repr.append("─ }");
+		repr.append("> block end");
 		return repr.toString();
 	}
 
