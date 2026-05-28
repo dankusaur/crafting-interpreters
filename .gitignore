@@ -26,5 +26,8 @@ replay_pid*
 # Visual Studio Code workspace settings
 .vscode
 
+# Zed workspace settings
+.zed
+
 # Build files
 build/
