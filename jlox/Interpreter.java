@@ -9,13 +9,14 @@ import jlox.Expr.Literal;
 import jlox.Expr.Ternary;
 import jlox.Expr.Unary;
 import jlox.Expr.Variable;
+import jlox.Stmt.Block;
 import jlox.Stmt.Expression;
 import jlox.Stmt.Print;
 import jlox.Stmt.VarStmt;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
-    private final Environment environment = new Environment();
+    private Environment environment = new Environment();
 
     Void interpret(final List<Stmt> statements) {
         try {
@@ -40,6 +41,36 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         final Object value = evaluate(stmt.expression);
         System.out.println(stringify(value));
         return null;
+    }
+
+
+    @Override
+    public Void visitVarStmt(final VarStmt stmt) {
+        Object initialValue = null;
+        if (stmt.initializer != null) {
+            initialValue = evaluate(stmt.initializer);
+        }
+        environment.define(stmt.var.lexeme, initialValue);
+        return null;
+    }
+
+    @Override
+	public Void visitBlock(Block stmt) {
+	    executeBlock(stmt.statements, new Environment(environment));
+		return null;
+	}
+
+    @Override
+    public Object visitAssign(final Assign expr) {
+        final Object value = evaluate(expr);
+        environment.assign(expr.name, value);
+        return value;
+    }
+
+    @Override
+    public Object visitVariable(final Variable expr) {
+        return environment.get(expr.name);
+
     }
 
     @Override
@@ -198,26 +229,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return value.toString();
     }
 
-    @Override
-    public Void visitVarStmt(final VarStmt stmt) {
-        Object initialValue = null;
-        if (stmt.initializer != null) {
-            initialValue = evaluate(stmt.initializer);
+    private void executeBlock(final List<Stmt> statements, final Environment enclosedEnv) {
+        final Environment enclosing = environment;
+        try {
+            environment = enclosedEnv;
+            for (final Stmt statement: statements) {
+                execute(statement);
+            }
+        } finally {
+            environment = enclosing;
         }
-        environment.define(stmt.var.lexeme, initialValue);
-        return null;
-    }
-
-    @Override
-    public Object visitVariable(final Variable expr) {
-        return environment.get(expr.name);
-
-    }
-
-    @Override
-    public Object visitAssign(final Assign expr) {
-        final Object value = evaluate(expr);
-        environment.assign(expr.name, value);
-        return value;
     }
 }

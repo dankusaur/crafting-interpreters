@@ -2,7 +2,9 @@ package jlox;
 
 import static jlox.TokenType.EQUAL;
 import static jlox.TokenType.IDENTIFIER;
+import static jlox.TokenType.LEFT_BRACE;
 import static jlox.TokenType.PRINT;
+import static jlox.TokenType.RIGHT_BRACE;
 import static jlox.TokenType.SEMICOLON;
 import static jlox.TokenType.VAR;
 
@@ -54,14 +56,25 @@ class Parser {
         if (match(PRINT)) {
             return printStatement();
         }
+        if (match (LEFT_BRACE)) {
+            return blockStatement();
+        }
         return expressionStatement();
     }
-
 
     private Stmt printStatement() {
         final Expr expr = expression();
         consume(SEMICOLON, "Expect ';' after value.");
         return new Stmt.Print(expr);
+    }
+
+    private Stmt blockStatement() {
+        final List<Stmt> statements = new ArrayList<>();
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            statements.add(statement());
+        }
+        consume(RIGHT_BRACE, "Expect '}' after block.");
+        return new Stmt.Block(statements);
     }
 
     private Stmt expressionStatement() {
