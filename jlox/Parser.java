@@ -40,7 +40,7 @@ class Parser {
 
     private Stmt varDeclaration() {
         final Token name = consume(IDENTIFIER, "Expect variable name.");
-        
+
         Expr initializer = null;
         if (match(EQUAL)) {
             initializer = expression();
