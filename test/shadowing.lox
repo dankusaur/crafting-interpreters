@@ -1,0 +1,6 @@
+var a = "this is a global variable";
+{
+    var a = "shadowing";
+    print a;
+}
+print a;
