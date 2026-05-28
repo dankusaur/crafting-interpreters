@@ -71,7 +71,7 @@ class Parser {
     private Stmt blockStatement() {
         final List<Stmt> statements = new ArrayList<>();
         while (!check(RIGHT_BRACE) && !isAtEnd()) {
-            statements.add(statement());
+            statements.add(declaration());
         }
         consume(RIGHT_BRACE, "Expect '}' after block.");
         return new Stmt.Block(statements);
