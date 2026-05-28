@@ -27,20 +27,27 @@ public class GenerateAst {
                 "Literal    : Object value",
                 "Unary      : Token operator, Expr right",
                 "Variable   : Token name"
-        ));
+        ), List.of());
         defineAst(outputDir, BASE_STATEMENT_CLASS_NAME, Arrays.asList(
-            "Expression: Expr expression",
+            "Block: List<Stmt> statements",
+            "Expression         : Expr expression",
             "Print              : Expr expression",
             "VarStmt            : Token var, Expr initializer"
-        ));
+        ), List.of("java.util.List"));
     }
 
-    private static void defineAst(final String outputDir, final String baseName, final List<String> types)
+    private static void defineAst(final String outputDir, final String baseName, final List<String> types, final List<String> imports)
             throws FileNotFoundException, UnsupportedEncodingException {
         final String outputPath = outputDir + "/" + baseName + ".java";
 
         final PrintWriter writer = new PrintWriter(outputPath, StandardCharsets.UTF_8.name());
         writer.println("package " + PACKAGE + ";");
+        if (imports.size() > 0) {
+            writer.println();
+            for (final String toImport: imports) {
+                writer.println("import " + toImport + ";");
+            }
+        }
         writer.println();
         writer.println("abstract class " + baseName + " {");
         writer.println();
