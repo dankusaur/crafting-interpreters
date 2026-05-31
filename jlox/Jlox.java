@@ -8,10 +8,14 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
+import jlox.ErrorReporter.DelayedErrorReporter;
+import jlox.ErrorReporter.StandardErrorReporter;
+
 /**
- * Currently doing 3 jobs of parsing args, determining runners, and error reporting.
+ * Currently doing 3 jobs of parsing args, determining executors, and error reporting.
  */
 class Jlox {
 
@@ -19,40 +23,136 @@ class Jlox {
     private static boolean hadError = false;
     private static boolean hadRuntimeError = false;
 
-    private static final Interpreter interpreter = new Interpreter();
-
-    private static Function<List<Stmt>, Void> runner;
-
     public static void main(final String[] args) throws IOException {
         if (args.length > 2) {
             exitWithHelp();
         }
-        runner = getRunner(args);
+        final ExecutionMode executionMode = executionMode(args);
         final Optional<String> scriptPath = getScriptPath(args);
+
+        final Consumer<String> executor = getExecutor(executionMode, scriptPath.isPresent());
+
         if (scriptPath.isPresent()) {
-            runFile(scriptPath.get());
+            runFile(scriptPath.get(), executor);
         } else {
-            runPrompt();
+            runPrompt(executor);
         }
     }
 
-    private static Function<List<Stmt>, Void> getRunner(String[] args) {
+    private static ExecutionMode executionMode(String[] args) {
         for (final String arg : args) {
             if (!arg.startsWith("--")) {
                 continue;
             }
             final String option = arg.substring(2);
-            switch (option) {
-                case "print":
-                    return (program) -> new AstPrinter().print(program);
-                case "run":
-                    return (program) -> interpreter.interpret(program);
-                default:
-                    System.out.println("Unknown option provided: " + option);
-                    exitWithHelp();
+            try {
+                return ExecutionMode.from(option);
+            } catch (IllegalArgumentException _) {
+                System.out.println("Unknown option provided: " + option);
+                exitWithHelp();
             }
         }
-        return (expr) -> interpreter.interpret(expr);
+        return ExecutionMode.EXECUTE;
+    }
+
+    private static Consumer<String> getExecutor(final ExecutionMode executionMode, final boolean filePathBased) {
+        if (filePathBased) {
+            return getFilePathExecutor(executionMode);
+        } else {
+            return getReplExecutor(executionMode, new Interpreter());
+        }
+    }
+
+    private static Consumer<String> getFilePathExecutor(final ExecutionMode executionMode) {
+        final StandardErrorReporter errorReporter = new StandardErrorReporter();
+        final Function<String, List<Stmt>> sharedParsing = (program) -> {
+            final Scanner scanner = new Scanner(program);
+            final List<Token> tokens = scanner.scanTokens();
+            final Parser parser = new Parser(tokens, errorReporter);
+            final List<Stmt> statements = parser.parse();
+            if (errorReporter.hadError) {
+                System.exit(65);
+            }
+            return statements;
+        };
+        switch (executionMode) {
+            case EXECUTE:
+                return (program) -> {
+                    final List<Stmt> statements = sharedParsing.apply(program);
+                    final Interpreter interpreter = new Interpreter();
+                    interpreter.interpret(statements);
+                    if (errorReporter.hadRuntimeError) {
+                        System.exit(70);
+                    }
+                };
+            case PRINT:
+                return (program) -> {
+                    final List<Stmt> statements = sharedParsing.apply(program);
+                    final AstPrinter printer = new AstPrinter();
+                    printer.print(statements);
+                };
+            default:
+                throw new IllegalStateException("Unkown execution mode");
+        }
+    }
+
+    private static Consumer<String> getReplExecutor(final ExecutionMode executionMode, final Interpreter interpreter) {
+        final DelayedErrorReporter errorReporter = new DelayedErrorReporter();
+        final Function<String, Optional<List<Stmt>>> sharedParsing = (statementOrExpr) -> {
+            final Scanner scanner = new Scanner(statementOrExpr);
+            final List<Token> tokens = scanner.scanTokens();
+            final Parser parser = new Parser(tokens, errorReporter);
+            final List<Stmt> statements = parser.parse();
+            if (errorReporter.hadError) {
+                return Optional.empty();
+            }
+            return Optional.of(statements);
+        };
+        final Function<String, Optional<Expr>> fallbackParsing = (statementOrExpr) -> {
+            final Scanner scanner = new Scanner(statementOrExpr);
+            final List<Token> tokens = scanner.scanTokens();
+            final Parser parser = new Parser(tokens, errorReporter);
+            final Expr expression = parser.parseExpression();
+            if (errorReporter.hadError) {
+                return Optional.empty();
+            }
+            return Optional.of(expression);
+        };
+        switch (executionMode) {
+            case EXECUTE:
+                return (statementOrExpr) -> {
+                    final Optional<List<Stmt>> singletonStatement = sharedParsing.apply(statementOrExpr);
+                    if (singletonStatement.isPresent()) {
+                        interpreter.interpret(singletonStatement.get());
+                    } else {
+                        errorReporter.clear();
+                        final Optional<Expr> expression = fallbackParsing.apply(statementOrExpr);
+                        if (expression.isPresent()) {
+                            System.out.println(interpreter.interpretExpression(expression.get()));
+                        } else {
+                            errorReporter.flush();
+                        }
+                    }
+                };
+            case PRINT:
+                return (statementOrExpr) -> {
+                    final Optional<List<Stmt>> singletonStatement = sharedParsing.apply(statementOrExpr);
+                    final AstPrinter printer = new AstPrinter();
+                    if (singletonStatement.isPresent()) {
+                        printer.print(singletonStatement.get());
+                    } else {
+                        errorReporter.clear();
+                        final Optional<Expr> expression = fallbackParsing.apply(statementOrExpr);
+                        if (expression.isPresent()) {
+                            printer.printExpression(expression.get());
+                        } else {
+                            errorReporter.flush();
+                        }
+                    }
+                };
+            default:
+                throw new IllegalStateException("Unkown execution mode");
+        }
     }
 
     private static Optional<String> getScriptPath(String[] args) {
@@ -70,9 +170,9 @@ class Jlox {
         System.exit(64);
     }
 
-    private static void runFile(final String path) throws IOException {
+    private static void runFile(final String path, final Consumer<String> executor) throws IOException {
         final byte[] bytes = Files.readAllBytes(Paths.get(path));
-        run(new String(bytes, Charset.defaultCharset()));
+        executor.accept(new String(bytes, Charset.defaultCharset()));
         if (hadError) {
             System.exit(65);
         }
@@ -81,7 +181,7 @@ class Jlox {
         }
     }
 
-    private static void runPrompt() throws IOException {
+    private static void runPrompt(final Consumer<String> executor) throws IOException {
         final InputStreamReader input = new InputStreamReader(System.in);
         final BufferedReader reader = new BufferedReader(input);
         for (;;) {
@@ -91,43 +191,8 @@ class Jlox {
                 System.out.println("\nGoodbye.");
                 break;
             }
-            run(line);
+            executor.accept(line);
             hadError = false;
         }
-    }
-
-    private static void run(String content) {
-        final Scanner scanner = new Scanner(content);
-        final List<Token> tokens = scanner.scanTokens();
-        final Parser parser = new Parser(tokens);
-        final List<Stmt> program = parser.parse();
-
-        if (hadError) {
-            return;
-        }
-
-        runner.apply(program);
-    }
-
-    public static void error(int line, String message) {
-        report(line, "", message);
-    }
-
-    private static void report(int line, String where, String message) {
-        System.err.println("[line" + line + "] Error" + where + ": " + message);
-        hadError = true;
-    }
-
-    static void error(Token token, String message) {
-        if (token.type == TokenType.EOF) {
-            report(token.line, " at end", message);
-        } else {
-            report(token.line, " at '" + token.lexeme + "'", message);
-        }
-    }
-
-    static void runtimeError(RuntimeError error) {
-        System.err.println(error.getMessage() + "\n[line " + error.token.line + "]");
-        hadError = true;
     }
 }

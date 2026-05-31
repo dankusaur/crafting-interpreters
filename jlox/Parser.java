@@ -16,8 +16,11 @@ class Parser {
     private final List<Token> tokens;
     private int current = 0;
 
-    Parser(final List<Token> tokens) {
+    private final ErrorReporter errorReporter;
+
+    Parser(final List<Token> tokens, final ErrorReporter errorReporter) {
         this.tokens = tokens;
+        this.errorReporter = errorReporter;
     }
 
     List<Stmt> parse() {
@@ -26,6 +29,10 @@ class Parser {
             statements.add(declaration());
         }
         return statements;
+    }
+
+    Expr parseExpression() {
+        return comma();
     }
 
     private Stmt declaration() {
@@ -242,7 +249,7 @@ class Parser {
     }
 
     private ParseError error(final Token token, final String message) {
-        Jlox.error(token, message);
+        errorReporter.syntaxError(token, message);
         return new ParseError();
     }
 

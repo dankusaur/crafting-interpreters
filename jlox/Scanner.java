@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import jlox.ErrorReporter.StandardErrorReporter;
+
 import static jlox.TokenType.*;
 
 public class Scanner {
@@ -15,6 +17,8 @@ public class Scanner {
     private int start = 0;
     private int current = 0;
     private int line = 0;
+
+    private final ErrorReporter errorReporter = new StandardErrorReporter();
 
     static {
         keywords.put("and", AND);
@@ -100,7 +104,7 @@ public class Scanner {
                 } else if (isAlpha(c)) {
                     identifier();
                 } else {
-                    Jlox.error(line, "Unexpected character.");
+                    errorReporter.syntaxError(line, "Unexpected character.");
                 }
                 break;
         }
@@ -139,7 +143,7 @@ public class Scanner {
             advance();
         }
         if (isAtEnd()) {
-            Jlox.error(line, "Unterminated string.");
+            errorReporter.syntaxError(line, "Unterminated string.");
             return;
         }
 
@@ -165,7 +169,7 @@ public class Scanner {
             advance();
         }
         if (isAtEnd()) {
-            Jlox.error(line, "Unterminated block comment.");
+            errorReporter.syntaxError(line, "Unterminated block comment.");
             return;
         }
 

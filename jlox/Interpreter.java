@@ -2,6 +2,7 @@ package jlox;
 
 import java.util.List;
 
+import jlox.ErrorReporter.StandardErrorReporter;
 import jlox.Expr.Assign;
 import jlox.Expr.Binary;
 import jlox.Expr.Grouping;
@@ -18,13 +19,23 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     private Environment environment = new Environment();
 
-    Void interpret(final List<Stmt> statements) {
+    private final ErrorReporter errorReporter = new StandardErrorReporter();
+
+    void interpret(final List<Stmt> statements) {
         try {
             for (final Stmt statement: statements) {
                 execute(statement);
             }
         } catch (RuntimeError error) {
-            Jlox.runtimeError(error);
+            errorReporter.runtimeError(error);
+        }
+    }
+
+    Object interpretExpression(final Expr expr) {
+        try {
+            return evaluate(expr);
+        } catch (RuntimeError error) {
+            errorReporter.runtimeError(error);
         }
         return null;
     }

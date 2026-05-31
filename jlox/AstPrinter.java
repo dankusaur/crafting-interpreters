@@ -21,11 +21,14 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
         new AstPrinter().print(List.of(new Stmt.Expression(expression)));
     }
 
-    Void print(final List<Stmt> statements) {
+    void print(final List<Stmt> statements) {
         for (final Stmt statement: statements) {
             System.out.println(statement.accept(this));
         }
-        return null;
+    }
+
+    void printExpression(final Expr expression) {
+        System.out.println(expression.accept(this));
     }
 
     @Override
