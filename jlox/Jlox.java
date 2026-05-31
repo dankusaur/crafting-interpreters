@@ -128,7 +128,10 @@ class Jlox {
                         errorReporter.clear();
                         final Optional<Expr> expression = fallbackParsing.apply(statementOrExpr);
                         if (expression.isPresent()) {
-                            System.out.println(interpreter.interpretExpression(expression.get()));
+                            final Object value = interpreter.interpretExpression(expression.get());
+                            if (!errorReporter.hadRuntimeError) {
+                                System.out.println(value);
+                            }
                         } else {
                             errorReporter.flush();
                         }
