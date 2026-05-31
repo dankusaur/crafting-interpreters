@@ -66,7 +66,7 @@ class Jlox {
     private static Consumer<String> getFilePathExecutor(final ExecutionMode executionMode) {
         final StandardErrorReporter errorReporter = new StandardErrorReporter();
         final Function<String, List<Stmt>> sharedParsing = (program) -> {
-            final Scanner scanner = new Scanner(program);
+            final Scanner scanner = new Scanner(program, errorReporter);
             final List<Token> tokens = scanner.scanTokens();
             final Parser parser = new Parser(tokens, errorReporter);
             final List<Stmt> statements = parser.parse();
@@ -99,7 +99,7 @@ class Jlox {
     private static Consumer<String> getReplExecutor(final ExecutionMode executionMode, final Interpreter interpreter) {
         final DelayedErrorReporter errorReporter = new DelayedErrorReporter();
         final Function<String, Optional<List<Stmt>>> sharedParsing = (statementOrExpr) -> {
-            final Scanner scanner = new Scanner(statementOrExpr);
+            final Scanner scanner = new Scanner(statementOrExpr, errorReporter);
             final List<Token> tokens = scanner.scanTokens();
             final Parser parser = new Parser(tokens, errorReporter);
             final List<Stmt> statements = parser.parse();
@@ -109,7 +109,7 @@ class Jlox {
             return Optional.of(statements);
         };
         final Function<String, Optional<Expr>> fallbackParsing = (statementOrExpr) -> {
-            final Scanner scanner = new Scanner(statementOrExpr);
+            final Scanner scanner = new Scanner(statementOrExpr, errorReporter);
             final List<Token> tokens = scanner.scanTokens();
             final Parser parser = new Parser(tokens, errorReporter);
             final Expr expression = parser.parseExpression();
@@ -129,7 +129,7 @@ class Jlox {
                         final Optional<Expr> expression = fallbackParsing.apply(statementOrExpr);
                         if (expression.isPresent()) {
                             final Object value = interpreter.interpretExpression(expression.get());
-                            if (!errorReporter.hadRuntimeError) {
+                            if (!errorReporter.hadError && !errorReporter.hadRuntimeError) {
                                 System.out.println(value);
                             }
                         } else {

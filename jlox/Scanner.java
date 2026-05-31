@@ -18,7 +18,7 @@ public class Scanner {
     private int current = 0;
     private int line = 0;
 
-    private final ErrorReporter errorReporter = new StandardErrorReporter();
+    private final ErrorReporter errorReporter;
 
     static {
         keywords.put("and", AND);
@@ -39,8 +39,9 @@ public class Scanner {
         keywords.put("while", WHILE);
     }
 
-    Scanner(final String source) {
+    Scanner(final String source, final ErrorReporter errorReporter) {
         this.source = source;
+        this.errorReporter = errorReporter;
     }
 
     List<Token> scanTokens() {
@@ -104,7 +105,7 @@ public class Scanner {
                 } else if (isAlpha(c)) {
                     identifier();
                 } else {
-                    errorReporter.syntaxError(line, "Unexpected character.");
+                    errorReporter.syntaxError(line, "Unexpected character: '" + c + "'.");
                 }
                 break;
         }

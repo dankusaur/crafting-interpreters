@@ -68,10 +68,11 @@ interface ErrorReporter {
             for (final String errorMessage: errors) {
                 System.err.println(errorMessage);
             }
+            hadError = false;
+            hadRuntimeError = false;
         }
 
         public void clear() {
-            hadError = false;
             errors.clear();
         }
 
