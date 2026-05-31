@@ -32,7 +32,12 @@ class Parser {
     }
 
     Expr parseExpression() {
-        return comma();
+        try {
+            return comma();
+        } catch (final ParseError error) {
+            return null;
+        }
+
     }
 
     private Stmt declaration() {
@@ -41,7 +46,7 @@ class Parser {
                 return varDeclaration();
             }
             return statement();
-        } catch (ParseError error) {
+        } catch (final ParseError error) {
             synchronize();
             return null;
         }
