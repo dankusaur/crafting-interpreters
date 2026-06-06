@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jlox.ErrorReporter.StandardErrorReporter;
-
 import static jlox.TokenType.*;
 
 public class Scanner {
