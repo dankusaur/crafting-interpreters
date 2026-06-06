@@ -3,7 +3,6 @@ package jlox;
 import java.util.List;
 
 import jlox.Environment.PrimitiveValue;
-import jlox.ErrorReporter.StandardErrorReporter;
 import jlox.Expr.Assign;
 import jlox.Expr.Binary;
 import jlox.Expr.Grouping;
@@ -18,9 +17,13 @@ import jlox.Stmt.VarStmt;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
+    private final ErrorReporter errorReporter;
+
     private Environment environment = new Environment();
 
-    private final ErrorReporter errorReporter = new StandardErrorReporter();
+    Interpreter(final ErrorReporter errorReporter) {
+        this.errorReporter = errorReporter;
+    }
 
     void interpret(final List<Stmt> statements) {
         try {
@@ -36,6 +39,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         try {
             return evaluate(expr);
         } catch (RuntimeError error) {
+            System.out.println("reporting");
             errorReporter.runtimeError(error);
         }
         return null;

@@ -59,7 +59,7 @@ class Jlox {
         if (filePathBased) {
             return getFilePathExecutor(executionMode);
         } else {
-            return getReplExecutor(executionMode, new Interpreter());
+            return getReplExecutor(executionMode);
         }
     }
 
@@ -79,7 +79,7 @@ class Jlox {
             case EXECUTE:
                 return (program) -> {
                     final List<Stmt> statements = sharedParsing.apply(program);
-                    final Interpreter interpreter = new Interpreter();
+                    final Interpreter interpreter = new Interpreter(errorReporter);
                     interpreter.interpret(statements);
                     if (errorReporter.hadRuntimeError) {
                         System.exit(70);
@@ -96,24 +96,25 @@ class Jlox {
         }
     }
 
-    private static Consumer<String> getReplExecutor(final ExecutionMode executionMode, final Interpreter interpreter) {
-        final DelayedErrorReporter errorReporter = new DelayedErrorReporter();
+    private static Consumer<String> getReplExecutor(final ExecutionMode executionMode) {
+        final DelayedErrorReporter delayedErrorReporter = new DelayedErrorReporter();
+        final StandardErrorReporter standardErrorReporter = new StandardErrorReporter();
         final Function<String, Optional<List<Stmt>>> sharedParsing = (statementOrExpr) -> {
-            final Scanner scanner = new Scanner(statementOrExpr, errorReporter);
+            final Scanner scanner = new Scanner(statementOrExpr, delayedErrorReporter);
             final List<Token> tokens = scanner.scanTokens();
-            final Parser parser = new Parser(tokens, errorReporter);
+            final Parser parser = new Parser(tokens, delayedErrorReporter);
             final List<Stmt> statements = parser.parse();
-            if (errorReporter.hadError) {
+            if (delayedErrorReporter.hadError) {
                 return Optional.empty();
             }
             return Optional.of(statements);
         };
         final Function<String, Optional<Expr>> fallbackParsing = (statementOrExpr) -> {
-            final Scanner scanner = new Scanner(statementOrExpr, errorReporter);
+            final Scanner scanner = new Scanner(statementOrExpr, delayedErrorReporter);
             final List<Token> tokens = scanner.scanTokens();
-            final Parser parser = new Parser(tokens, errorReporter);
+            final Parser parser = new Parser(tokens, delayedErrorReporter);
             final Expr expression = parser.parseExpression();
-            if (errorReporter.hadError) {
+            if (delayedErrorReporter.hadError) {
                 return Optional.empty();
             }
             return Optional.of(expression);
@@ -122,18 +123,18 @@ class Jlox {
             case EXECUTE:
                 return (statementOrExpr) -> {
                     final Optional<List<Stmt>> singletonStatement = sharedParsing.apply(statementOrExpr);
+                    final Interpreter interpreter = new Interpreter(standardErrorReporter);
                     if (singletonStatement.isPresent()) {
                         interpreter.interpret(singletonStatement.get());
                     } else {
-                        errorReporter.clear();
                         final Optional<Expr> expression = fallbackParsing.apply(statementOrExpr);
                         if (expression.isPresent()) {
                             final Object value = interpreter.interpretExpression(expression.get());
-                            if (!errorReporter.hadError && !errorReporter.hadRuntimeError) {
+                            if (!standardErrorReporter.hadError && !standardErrorReporter.hadRuntimeError) {
                                 System.out.println(value);
                             }
                         } else {
-                            errorReporter.flush();
+                            delayedErrorReporter.flush();
                         }
                     }
                 };
@@ -144,12 +145,11 @@ class Jlox {
                     if (singletonStatement.isPresent()) {
                         printer.print(singletonStatement.get());
                     } else {
-                        errorReporter.clear();
                         final Optional<Expr> expression = fallbackParsing.apply(statementOrExpr);
                         if (expression.isPresent()) {
                             printer.printExpression(expression.get());
                         } else {
-                            errorReporter.flush();
+                            delayedErrorReporter.flush();
                         }
                     }
                 };

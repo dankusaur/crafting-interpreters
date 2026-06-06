@@ -74,6 +74,8 @@ interface ErrorReporter {
 
         public void clear() {
             errors.clear();
+            hadError = false;
+            hadRuntimeError = false;
         }
 
         private void report(final int line, final String where, final String message) {

@@ -37,7 +37,6 @@ class Parser {
         } catch (final ParseError error) {
             return null;
         }
-
     }
 
     private Stmt declaration() {
