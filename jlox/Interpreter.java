@@ -59,13 +59,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitVarStmt(final VarStmt stmt) {
-        Object initialValue = null;
+        Object initialValue = PrimitiveValue.UNINITIALIZED;
         if (stmt.initializer != null) {
             initialValue = evaluate(stmt.initializer);
-            environment.define(stmt.var.lexeme, initialValue);
-        } else {
-            environment.define(stmt.var.lexeme, PrimitiveValue.UNASSIGNED);
         }
+        environment.define(stmt.var.lexeme, initialValue);
         return null;
     }
 
@@ -85,8 +83,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitVariable(final Variable expr) {
         final Object value = environment.get(expr.name);
-        if (value == PrimitiveValue.UNASSIGNED) {
-            throw new RuntimeError(expr.name, "Variable '" + expr.name.lexeme + "' " + "is not assigned.");
+        if (value == PrimitiveValue.UNINITIALIZED) {
+            throw new RuntimeError(expr.name, "Variable '" + expr.name.lexeme + "' " + "is not initialized.");
         }
         return value;
     }

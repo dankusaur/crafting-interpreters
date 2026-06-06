@@ -8,7 +8,7 @@ public class Environment {
     private final Environment enclosing;
 
     static enum PrimitiveValue {
-        UNASSIGNED
+        UNINITIALIZED
     }
 
     Environment() {
@@ -24,7 +24,7 @@ public class Environment {
     }
 
     void define(final String name) {
-        values.put(name, PrimitiveValue.UNASSIGNED);
+        values.put(name, PrimitiveValue.UNINITIALIZED);
     }
 
     Object get(final Token name) {
