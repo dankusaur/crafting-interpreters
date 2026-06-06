@@ -39,7 +39,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         try {
             return evaluate(expr);
         } catch (RuntimeError error) {
-            System.out.println("reporting");
             errorReporter.runtimeError(error);
         }
         return null;

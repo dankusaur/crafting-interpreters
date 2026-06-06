@@ -11,6 +11,8 @@ interface ErrorReporter {
 
     void runtimeError(final RuntimeError error);
 
+    void clear();
+
     class StandardErrorReporter implements ErrorReporter {
 
         boolean hadError = false;
@@ -31,6 +33,11 @@ interface ErrorReporter {
         public void runtimeError(final RuntimeError error) {
             System.err.println(error.getMessage() + "\n[line " + error.token.line + "]");
             hadRuntimeError = true;
+        }
+
+        public void clear() {
+            hadError = false;
+            hadRuntimeError = false;
         }
 
         private void report(final int line, final String where, final String message) {
@@ -68,8 +75,7 @@ interface ErrorReporter {
             for (final String errorMessage: errors) {
                 System.err.println(errorMessage);
             }
-            hadError = false;
-            hadRuntimeError = false;
+            clear();
         }
 
         public void clear() {

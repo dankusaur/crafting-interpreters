@@ -126,7 +126,9 @@ class Jlox {
                     final Optional<List<Stmt>> singletonStatement = sharedParsing.apply(statementOrExpr);
                     if (singletonStatement.isPresent()) {
                         interpreter.interpret(singletonStatement.get());
+                        standardErrorReporter.clear();
                     } else {
+                        delayedErrorReporter.clear();
                         final Optional<Expr> expression = fallbackParsing.apply(statementOrExpr);
                         if (expression.isPresent()) {
                             final Object value = interpreter.interpretExpression(expression.get());
