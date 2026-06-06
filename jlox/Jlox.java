@@ -119,11 +119,11 @@ class Jlox {
             }
             return Optional.of(expression);
         };
+        final Interpreter interpreter = new Interpreter(standardErrorReporter);
         switch (executionMode) {
             case EXECUTE:
                 return (statementOrExpr) -> {
                     final Optional<List<Stmt>> singletonStatement = sharedParsing.apply(statementOrExpr);
-                    final Interpreter interpreter = new Interpreter(standardErrorReporter);
                     if (singletonStatement.isPresent()) {
                         interpreter.interpret(singletonStatement.get());
                     } else {
