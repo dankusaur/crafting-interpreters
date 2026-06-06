@@ -2,6 +2,7 @@ package jlox;
 
 import java.util.List;
 
+import jlox.Environment.PrimitiveValue;
 import jlox.ErrorReporter.StandardErrorReporter;
 import jlox.Expr.Assign;
 import jlox.Expr.Binary;
@@ -40,7 +41,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return null;
     }
 
-
     @Override
     public Void visitExpression(final Expression stmt) {
         evaluate(stmt.expression);
@@ -54,14 +54,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return null;
     }
 
-
     @Override
     public Void visitVarStmt(final VarStmt stmt) {
         Object initialValue = null;
         if (stmt.initializer != null) {
             initialValue = evaluate(stmt.initializer);
+            environment.define(stmt.var.lexeme, initialValue);
+        } else {
+            environment.define(stmt.var.lexeme, PrimitiveValue.UNASSIGNED);
         }
-        environment.define(stmt.var.lexeme, initialValue);
         return null;
     }
 
@@ -80,8 +81,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Object visitVariable(final Variable expr) {
-        return environment.get(expr.name);
-
+        final Object value = environment.get(expr.name);
+        if (value == PrimitiveValue.UNASSIGNED) {
+            throw new RuntimeError(expr.name, "Variable '" + expr.name.lexeme + "' " + "is not assigned.");
+        }
+        return value;
     }
 
     @Override

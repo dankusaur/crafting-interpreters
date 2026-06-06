@@ -7,6 +7,10 @@ public class Environment {
     private final Map<String, Object> values = new HashMap<>();
     private final Environment enclosing;
 
+    static enum PrimitiveValue {
+        UNASSIGNED
+    }
+
     Environment() {
         enclosing = null;
     }
@@ -17,6 +21,10 @@ public class Environment {
 
     void define(final String name, final Object value) {
         values.put(name, value);
+    }
+
+    void define(final String name) {
+        values.put(name, PrimitiveValue.UNASSIGNED);
     }
 
     Object get(final Token name) {
