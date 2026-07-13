@@ -27,10 +27,9 @@ class Jlox {
         if (args.length > 2) {
             exitWithHelp();
         }
-        final ExecutionMode executionMode = executionMode(args);
         final Optional<String> scriptPath = getScriptPath(args);
 
-        final Consumer<String> executor = getExecutor(executionMode, scriptPath.isPresent());
+        final Consumer<String> executor = getExecutor(scriptPath.isPresent());
 
         if (scriptPath.isPresent()) {
             runFile(scriptPath.get(), executor);
@@ -39,33 +38,17 @@ class Jlox {
         }
     }
 
-    private static ExecutionMode executionMode(String[] args) {
-        for (final String arg : args) {
-            if (!arg.startsWith("--")) {
-                continue;
-            }
-            final String option = arg.substring(2);
-            try {
-                return ExecutionMode.from(option);
-            } catch (IllegalArgumentException _) {
-                System.out.println("Unknown option provided: " + option);
-                exitWithHelp();
-            }
-        }
-        return ExecutionMode.EXECUTE;
-    }
-
-    private static Consumer<String> getExecutor(final ExecutionMode executionMode, final boolean filePathBased) {
+    private static Consumer<String> getExecutor(final boolean filePathBased) {
         if (filePathBased) {
-            return getFilePathExecutor(executionMode);
+            return getFilePathExecutor();
         } else {
-            return getReplExecutor(executionMode);
+            return getReplExecutor();
         }
     }
 
-    private static Consumer<String> getFilePathExecutor(final ExecutionMode executionMode) {
+    private static Consumer<String> getFilePathExecutor() {
         final StandardErrorReporter errorReporter = new StandardErrorReporter();
-        final Function<String, List<Stmt>> sharedParsing = (program) -> {
+        final Function<String, List<Stmt>> parse = (program) -> {
             final Scanner scanner = new Scanner(program, errorReporter);
             final List<Token> tokens = scanner.scanTokens();
             final Parser parser = new Parser(tokens, errorReporter);
@@ -75,28 +58,17 @@ class Jlox {
             }
             return statements;
         };
-        switch (executionMode) {
-            case EXECUTE:
-                return (program) -> {
-                    final List<Stmt> statements = sharedParsing.apply(program);
-                    final Interpreter interpreter = new Interpreter(errorReporter);
-                    interpreter.interpret(statements);
-                    if (errorReporter.hadRuntimeError) {
-                        System.exit(70);
-                    }
-                };
-            case PRINT:
-                return (program) -> {
-                    final List<Stmt> statements = sharedParsing.apply(program);
-                    final AstPrinter printer = new AstPrinter();
-                    printer.print(statements);
-                };
-            default:
-                throw new IllegalStateException("Unkown execution mode");
-        }
+        return (program) -> {
+            final List<Stmt> statements = parse.apply(program);
+            final Interpreter interpreter = new Interpreter(errorReporter);
+            interpreter.interpret(statements);
+            if (errorReporter.hadRuntimeError) {
+                System.exit(70);
+            }
+        };
     }
 
-    private static Consumer<String> getReplExecutor(final ExecutionMode executionMode) {
+    private static Consumer<String> getReplExecutor() {
         final DelayedErrorReporter delayedErrorReporter = new DelayedErrorReporter();
         final StandardErrorReporter standardErrorReporter = new StandardErrorReporter();
         final Function<String, Optional<List<Stmt>>> sharedParsing = (statementOrExpr) -> {
@@ -120,44 +92,24 @@ class Jlox {
             return Optional.of(expression);
         };
         final Interpreter interpreter = new Interpreter(standardErrorReporter);
-        switch (executionMode) {
-            case EXECUTE:
-                return (statementOrExpr) -> {
-                    final Optional<List<Stmt>> singletonStatement = sharedParsing.apply(statementOrExpr);
-                    if (singletonStatement.isPresent()) {
-                        interpreter.interpret(singletonStatement.get());
-                        standardErrorReporter.clear();
-                    } else {
-                        delayedErrorReporter.clear();
-                        final Optional<Expr> expression = fallbackParsing.apply(statementOrExpr);
-                        if (expression.isPresent()) {
-                            final Object value = interpreter.interpretExpression(expression.get());
-                            if (!standardErrorReporter.hadError && !standardErrorReporter.hadRuntimeError) {
-                                System.out.println(value);
-                            }
-                        } else {
-                            delayedErrorReporter.flush();
-                        }
+        return (statementOrExpr) -> {
+            final Optional<List<Stmt>> singletonStatement = sharedParsing.apply(statementOrExpr);
+            if (singletonStatement.isPresent()) {
+                interpreter.interpret(singletonStatement.get());
+                standardErrorReporter.clear();
+            } else {
+                delayedErrorReporter.clear();
+                final Optional<Expr> expression = fallbackParsing.apply(statementOrExpr);
+                if (expression.isPresent()) {
+                    final Object value = interpreter.interpretExpression(expression.get());
+                    if (!standardErrorReporter.hadError && !standardErrorReporter.hadRuntimeError) {
+                        System.out.println(value);
                     }
-                };
-            case PRINT:
-                return (statementOrExpr) -> {
-                    final Optional<List<Stmt>> singletonStatement = sharedParsing.apply(statementOrExpr);
-                    final AstPrinter printer = new AstPrinter();
-                    if (singletonStatement.isPresent()) {
-                        printer.print(singletonStatement.get());
-                    } else {
-                        final Optional<Expr> expression = fallbackParsing.apply(statementOrExpr);
-                        if (expression.isPresent()) {
-                            printer.printExpression(expression.get());
-                        } else {
-                            delayedErrorReporter.flush();
-                        }
-                    }
-                };
-            default:
-                throw new IllegalStateException("Unkown execution mode");
-        }
+                } else {
+                    delayedErrorReporter.flush();
+                }
+            }
+        };
     }
 
     private static Optional<String> getScriptPath(String[] args) {
