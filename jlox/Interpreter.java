@@ -12,6 +12,7 @@ import jlox.Expr.Unary;
 import jlox.Expr.Variable;
 import jlox.Stmt.Block;
 import jlox.Stmt.Expression;
+import jlox.Stmt.If;
 import jlox.Stmt.Print;
 import jlox.Stmt.VarStmt;
 
@@ -256,4 +257,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             environment = enclosing;
         }
     }
+
+	@Override
+	public Void visitIf(If stmt) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'visitIf'");
+	}
 }

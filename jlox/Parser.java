@@ -1,10 +1,14 @@
 package jlox;
 
+import static jlox.TokenType.ELSE;
 import static jlox.TokenType.EQUAL;
 import static jlox.TokenType.IDENTIFIER;
+import static jlox.TokenType.IF;
 import static jlox.TokenType.LEFT_BRACE;
+import static jlox.TokenType.LEFT_PAREN;
 import static jlox.TokenType.PRINT;
 import static jlox.TokenType.RIGHT_BRACE;
+import static jlox.TokenType.RIGHT_PAREN;
 import static jlox.TokenType.SEMICOLON;
 import static jlox.TokenType.VAR;
 
@@ -64,6 +68,9 @@ class Parser {
     }
 
     private Stmt statement() {
+        if (match(IF)) {
+            return ifStatement();
+        }
         if (match(PRINT)) {
             return printStatement();
         }
@@ -71,6 +78,20 @@ class Parser {
             return blockStatement();
         }
         return expressionStatement();
+    }
+
+    private Stmt ifStatement() {
+        consume(LEFT_PAREN, "Expect '(' after if.");
+        final Expr expr = expression();
+        consume(RIGHT_PAREN, "Expect ')' after if condition.");
+        final Stmt thenBranch = statement();
+        final Stmt elseBranch;
+        if (match(ELSE)) {
+            elseBranch = statement();
+        } else {
+            elseBranch = null;
+        }
+        return new Stmt.If(expr, thenBranch, elseBranch);
     }
 
     private Stmt printStatement() {
