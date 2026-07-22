@@ -259,8 +259,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
 	@Override
-	public Void visitIf(If stmt) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'visitIf'");
+	public Void visitIf(final If stmt) {
+	    if (isTruthy(evaluate(stmt.condition))) {
+	        execute(stmt.thenBranch);
+		} else if (stmt.elseBranch != null) {
+            execute(stmt.elseBranch);
+		}
+		return null;
 	}
 }
