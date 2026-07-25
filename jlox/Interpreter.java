@@ -191,7 +191,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         if (object instanceof Boolean) {
             return (boolean) object;
         }
-        return false;
+        return true;
     }
 
     private boolean isEqual(final Object object1, final Object object2) {
