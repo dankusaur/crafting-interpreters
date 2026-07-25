@@ -138,7 +138,7 @@ class Parser {
     }
 
     private Expr conditional() {
-        Expr expr = equality();
+        Expr expr = or();
         if (match(TokenType.QUESTION_MARK)) {
             final Expr thenBranch = expression();
             consume(TokenType.COLON, "Expect ':' after then branch of conditional expression.");
@@ -146,6 +146,14 @@ class Parser {
             expr = new Expr.Ternary(expr, thenBranch, elseBranch);
         }
         return expr;
+    }
+
+    private Expr or() {
+        return parseLogicalLeftAssociative(this::and, TokenType.OR);
+    }
+
+    private Expr and() {
+        return parseLogicalLeftAssociative(this::equality, TokenType.AND);
     }
 
     private Expr equality() {
@@ -218,6 +226,16 @@ class Parser {
         }
 
         throw error(peek(), "Expect expression.");
+    }
+
+    private Expr parseLogicalLeftAssociative(final Supplier<Expr> operandParser, final TokenType... operators) {
+        Expr expr = operandParser.get();
+        while (match(operators)) {
+            final Token operator = previous();
+            final Expr right = operandParser.get();
+            expr = new Expr.Logical(expr, operator, right);
+        }
+        return expr;
     }
 
     private Expr parseBinaryLeftAssociative(final Supplier<Expr> operandParser, final TokenType... operators) {
