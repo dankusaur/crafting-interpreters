@@ -272,7 +272,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitLogical(final Logical expr) {
         final Object left = evaluate(expr.left);
-        System.out.println("evaluation: " + left.toString());
         switch (expr.operator.type) {
             case OR:
                 return isTruthy(left) ? left : evaluate(expr.right);
