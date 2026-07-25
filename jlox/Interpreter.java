@@ -7,6 +7,7 @@ import jlox.Expr.Assign;
 import jlox.Expr.Binary;
 import jlox.Expr.Grouping;
 import jlox.Expr.Literal;
+import jlox.Expr.Logical;
 import jlox.Expr.Ternary;
 import jlox.Expr.Unary;
 import jlox.Expr.Variable;
@@ -69,10 +70,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
-	public Void visitBlock(Block stmt) {
-	    executeBlock(stmt.statements, new Environment(environment));
-		return null;
-	}
+    public Void visitBlock(Block stmt) {
+        executeBlock(stmt.statements, new Environment(environment));
+        return null;
+    }
 
     @Override
     public Object visitAssign(final Assign expr) {
@@ -258,13 +259,13 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
     }
 
-	@Override
-	public Void visitIf(final If stmt) {
-	    if (isTruthy(evaluate(stmt.condition))) {
-	        execute(stmt.thenBranch);
-		} else if (stmt.elseBranch != null) {
+    @Override
+    public Void visitIf(final If stmt) {
+        if (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.thenBranch);
+        } else if (stmt.elseBranch != null) {
             execute(stmt.elseBranch);
-		}
-		return null;
-	}
+        }
+        return null;
+    }
 }
