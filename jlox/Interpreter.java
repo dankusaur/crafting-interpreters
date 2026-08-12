@@ -16,6 +16,7 @@ import jlox.Stmt.Expression;
 import jlox.Stmt.If;
 import jlox.Stmt.Print;
 import jlox.Stmt.VarStmt;
+import jlox.Stmt.While;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
@@ -281,6 +282,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 break;
         }
         // Unreachable
+        return null;
+    }
+
+    @Override
+    public Void visitWhile(final While stmt) {
+        while (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.body);
+        }
         return null;
     }
 }

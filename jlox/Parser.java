@@ -11,6 +11,7 @@ import static jlox.TokenType.RIGHT_BRACE;
 import static jlox.TokenType.RIGHT_PAREN;
 import static jlox.TokenType.SEMICOLON;
 import static jlox.TokenType.VAR;
+import static jlox.TokenType.WHILE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,6 +78,9 @@ class Parser {
         if (match (LEFT_BRACE)) {
             return blockStatement();
         }
+        if (match(WHILE)) {
+            return whileStatement();
+        }
         return expressionStatement();
     }
 
@@ -92,6 +96,14 @@ class Parser {
             elseBranch = null;
         }
         return new Stmt.If(expr, thenBranch, elseBranch);
+    }
+
+    private Stmt whileStatement() {
+        consume(LEFT_PAREN, "Expect '(' after 'while'.");
+        final Expr expr = expression();
+        consume(RIGHT_PAREN, "Expect ')' after 'while' condition.");
+        final Stmt body = statement();
+        return new Stmt.While(expr, body);
     }
 
     private Stmt printStatement() {

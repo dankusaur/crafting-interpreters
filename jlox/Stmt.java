@@ -10,6 +10,7 @@ abstract class Stmt {
         R visitBlock(Block stmt);
         R visitExpression(Expression stmt);
         R visitIf(If stmt);
+        R visitWhile(While stmt);
         R visitPrint(Print stmt);
         R visitVarStmt(VarStmt stmt);
     }
@@ -54,6 +55,21 @@ abstract class Stmt {
         @Override
         <R> R accept(final Visitor<R> visitor) {
             return visitor.visitIf(this);
+        }
+    }
+
+    static class While extends Stmt {
+        final Expr condition;
+        final Stmt body;
+
+        While(final Expr condition, final Stmt body) {
+            this.condition = condition;
+            this.body = body;
+        }
+
+        @Override
+        <R> R accept(final Visitor<R> visitor) {
+            return visitor.visitWhile(this);
         }
     }
 
